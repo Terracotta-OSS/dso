@@ -52,7 +52,6 @@ import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -93,6 +92,8 @@ public class TCLogging {
   private static final int          DEFAULT_MAX_LOG_FILE_SIZE          = 512;
   private static final String       MAX_BACKUPS_PROPERTY               = "maxBackups";
   private static final int          DEFAULT_MAX_BACKUPS                = 20;
+  private static final String       BACKUP_FILE_SUFFIX_PROPERTY        = "backupFileSuffix";
+  private static final String       DEFAULT_BACKUP_FILE_SUFFIX         = "";
   private static final String       LOG4J_CUSTOM_FILENAME              = ".tc.custom.log4j.properties";
   private static final String       LOG4J_DEV_FILENAME                 = ".tc.dev.log4j.properties";
   private static final String       LOGBACK_CUSTOM_FILENAME            = ".tc.custom.logback.xml";
@@ -283,8 +284,8 @@ public class TCLogging {
     try {
       // First one wins:
       List<File> locations = new ArrayList<File>();
-      if (System.getenv("TC_INSTALL_DIR") != null) {
-        locations.add(new File(System.getenv("TC_INSTALL_DIR"), LOGBACK_CUSTOM_FILENAME));
+      if (System.getProperty("tc.install-root") != null) {
+        locations.add(new File(System.getProperty("tc.install-root"), LOGBACK_CUSTOM_FILENAME));
       }
       locations.add(new File(System.getProperty("user.home"), LOGBACK_CUSTOM_FILENAME));
       locations.add(new File(System.getProperty("user.dir"), LOGBACK_CUSTOM_FILENAME));
@@ -456,7 +457,9 @@ public class TCLogging {
         rollingPolicy.setContext(loggerContext);
         rollingPolicy.setMinIndex(1);
         rollingPolicy.setMaxIndex(props.getInt(MAX_BACKUPS_PROPERTY, DEFAULT_MAX_BACKUPS));
-        rollingPolicy.setFileNamePattern(fileNamePrefix + ".%i" + fileNameSuffix);
+        String backupFileSuffix = props.getProperty(BACKUP_FILE_SUFFIX_PROPERTY);
+        rollingPolicy.setFileNamePattern(fileNamePrefix + ".%i" + fileNameSuffix +
+          (backupFileSuffix != null ? backupFileSuffix : DEFAULT_BACKUP_FILE_SUFFIX));
         rollingPolicy.setParent(newFileAppender);
         rollingPolicy.start();
         newFileAppender.setRollingPolicy(rollingPolicy);
@@ -507,7 +510,7 @@ public class TCLogging {
     return new TCLoggerImpl(DERBY_LOGGER_NAME);
   }
 
-  private static void initializeLogging() {
+  private static void resetRootLogger() {
     loggerContext.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.INFO);
     loggerContext.getLogger(Logger.ROOT_LOGGER_NAME).detachAndStopAllAppenders();
   }
@@ -525,11 +528,9 @@ public class TCLogging {
 
     try {
       LoggerContext loggerContext = getLoggerContext();
+      resetRootLogger();
       boolean customLogging = customConfiguration();
       boolean isDev = customLogging ? false : developmentConfiguration();
-      if (!customLogging && !isDev) {
-        initializeLogging();
-      }
       checkForOldConfiguration();
       Logger customerLogger = loggerContext.getLogger(CUSTOMER_LOGGER_NAMESPACE);
       Logger consoleLogger = loggerContext.getLogger(CONSOLE_LOGGER_NAME);
@@ -547,7 +548,7 @@ public class TCLogging {
        */
       allLoggers = createAllLoggerList(internalLoggers, customerLogger);
       if (!customLogging) {
-        Logger jettyLogger = loggerContext.getLogger("org.mortbay");
+        Logger jettyLogger = loggerContext.getLogger("org.eclipse.jetty");
         jettyLogger.setLevel(Level.OFF);
 
         for (Logger internalLogger : internalLoggers) {
