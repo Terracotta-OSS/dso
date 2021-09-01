@@ -310,7 +310,7 @@ The Initial Developer of the Covered Software is
       <dependency>
         <groupId>org.apache.ant</groupId>
         <artifactId>ant</artifactId>
-        <version>1.7.1</version>
+        <version>1.10.11</version>
       </dependency>
       <dependency>
         <groupId>org.powermock</groupId>
