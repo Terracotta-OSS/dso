@@ -37,6 +37,7 @@ esac
 
 THIS_DIR=`dirname $0`
 TC_INSTALL_DIR=`cd $THIS_DIR;pwd`/../..
+JAVA_MEMORY_OPTS=${JAVA_MEMORY_OPTS:-"-Xms2g -Xmx2g"}
 
 if [ -r "$TC_INSTALL_DIR"/server/bin/setenv.sh ] ; then
   . "$TC_INSTALL_DIR"/server/bin/setenv.sh
@@ -69,7 +70,7 @@ args="$@"
 start=true
 while "$start"
 do
-eval ${JAVA_COMMAND} -Xms2g -Xmx2g -XX:+HeapDumpOnOutOfMemoryError \
+eval ${JAVA_COMMAND} ${JAVA_MEMORY_OPTS} -XX:+HeapDumpOnOutOfMemoryError \
    -Dcom.sun.management.jmxremote \
    -Dtc.install-root="${TC_INSTALL_DIR}" \
    -Dsun.rmi.dgc.server.gcInterval=31536000000\
