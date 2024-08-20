@@ -94,33 +94,12 @@ class TerracottaInternalClientImpl implements TerracottaInternalClient {
 
       isInitialized = true;
       join(tunneledMBeanDomains);
-      setSecretHackOMFG();
     } catch (InvocationTargetException e) {
       throw new RuntimeException(e.getCause());
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
 
-  }
-
-  private void setSecretHackOMFG() {
-    try {
-      // Let's make sure we even care about security stuff at all...
-      // if so, then check if the thing that cares is the BM Connector's TkSecurityManager
-      appClassLoader.loadClass("com.terracotta.management.keychain.KeyChain");
-      final Class<?> omfg = appClassLoader.loadClass("net.sf.ehcache.thrift.server.tc.TkSecurityManager");
-      final Field secret = omfg.getDeclaredField("SECRET");
-      if (secret.getType() == byte[].class) {
-        secret.setAccessible(true);
-        Class secretProviderClass = clusteredStateLoader.loadClass("com.terracotta.management.security.SecretProvider");
-        Method method = secretProviderClass.getMethod("getSecret");
-        secret.set(null, method.invoke(null));
-      }
-    } catch (ClassNotFoundException e) {
-      // That's fine, moving on
-    } catch (Throwable t) {
-      //
-    }
   }
 
   @Override
