@@ -86,17 +86,4 @@ public class JvmProcessUtil {
     }
   }
 
-  public static void main(String[] args) throws IOException, InterruptedException {
-    int pids[] = JvmProcessUtil.getJavaPIDS("Hang");
-    if (pids != null) {
-      for (int pid : pids) {
-        if (pid != 0) {
-          System.out.println(pid);
-          sendSignal(Signal.SIGSTOP, pid);
-          System.out.println("Send Signal");
-        }
-      }
-    }
-  }
-
 }

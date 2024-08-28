@@ -249,15 +249,4 @@ public class L1ConfigBuilder extends BaseConfigBuilder {
     }
   }
 
-  public static void main(final String[] args) {
-    L1ConfigBuilder builder = new L1ConfigBuilder();
-    System.err.println(builder);
-
-    builder.setROOCaller(true);
-    builder.setROOFullStack(false);
-    builder.setLogs("funk");
-    builder.addModule("testmo", "org.mycompany.modules", "1.2");
-    System.err.println(builder);
-  }
-
 }
