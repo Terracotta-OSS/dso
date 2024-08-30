@@ -1,18 +1,18 @@
-/* 
- * The contents of this file are subject to the Terracotta Public License Version
- * 2.0 (the "License"); You may not use this file except in compliance with the
- * License. You may obtain a copy of the License at 
+/*
+ * Copyright Terracotta, Inc.
+ * Copyright Super iPaaS Integration LLC, an IBM Company 2024
  *
- *      http://terracotta.org/legal/terracotta-public-license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * The Covered Software is Terracotta Platform.
- *
- * The Initial Developer of the Covered Software is 
- *      Terracotta, Inc., a Software AG company
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.tc.net.groups;
 
@@ -75,13 +75,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.mockito.Answers.RETURNS_MOCKS;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.mockito.Mockito.withSettings;
 
 public class TCGroupManagerImplTest extends TCTestCase {
 
@@ -609,7 +610,7 @@ public class TCGroupManagerImplTest extends TCTestCase {
     PortChooser portChooser = new PortChooser();
     TCGroupManagerImpl tcGroupManager = spy(new TCGroupManagerImpl(new NullConnectionPolicy(), "localhost",
         portChooser.chooseRandomPort(), portChooser.chooseRandomPort(),
-        mock(StageManager.class, RETURNS_MOCKS.get()), mock(TCSecurityManager.class)) {
+        mock(StageManager.class, withSettings().defaultAnswer(RETURNS_MOCKS)), mock(TCSecurityManager.class)) {
       @Override
       protected void initializeWeights(final WeightGeneratorFactory weightGeneratorFactory) {
         weightGeneratorFactory.add(new WeightGeneratorFactory.WeightGenerator() {
@@ -666,7 +667,7 @@ public class TCGroupManagerImplTest extends TCTestCase {
   }
 
   private MessageChannel mockMessageChannel() {
-    final TCGroupHandshakeMessage tcGroupHandshakeMessage = mock(TCGroupHandshakeMessage.class, RETURNS_MOCKS.get());
+    final TCGroupHandshakeMessage tcGroupHandshakeMessage = mock(TCGroupHandshakeMessage.class, withSettings().defaultAnswer(RETURNS_MOCKS));
     MessageChannel channel = mock(MessageChannel.class);
     when(channel.getAttachment(anyString())).thenReturn(null);
     when(channel.createMessage(TCMessageType.GROUP_HANDSHAKE_MESSAGE)).thenReturn(tcGroupHandshakeMessage);

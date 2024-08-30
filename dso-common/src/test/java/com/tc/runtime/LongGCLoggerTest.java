@@ -1,18 +1,18 @@
-/* 
- * The contents of this file are subject to the Terracotta Public License Version
- * 2.0 (the "License"); You may not use this file except in compliance with the
- * License. You may obtain a copy of the License at 
+/*
+ * Copyright Terracotta, Inc.
+ * Copyright Super iPaaS Integration LLC, an IBM Company 2024
  *
- *      http://terracotta.org/legal/terracotta-public-license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * The Covered Software is Terracotta Platform.
- *
- * The Initial Developer of the Covered Software is 
- *      Terracotta, Inc., a Software AG company
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.tc.runtime;
 
@@ -26,6 +26,7 @@ import com.tc.operatorevent.TerracottaOperatorEventCallback;
 import com.tc.operatorevent.TerracottaOperatorEventLogging;
 import com.tc.runtime.logging.LongGCLogger;
 import com.tc.test.TCTestCase;
+import com.tc.util.concurrent.ThreadUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,6 +93,8 @@ public class LongGCLoggerTest extends TCTestCase {
       }
 
       addObjectsToArrayList();
+
+      ThreadUtil.reallySleep(10);
     }
   }
 
@@ -112,14 +115,19 @@ public class LongGCLoggerTest extends TCTestCase {
                                + "Currently Max Memory is " + max_memory);
     }
     System.err.println("Max memory is " + max_memory);
-    int blockSize = (int) ((max_memory) / 4);
+    int blockSize;
+    if (max_memory >= Integer.MAX_VALUE) {
+      blockSize = Integer.MAX_VALUE / 4;
+    } else {
+      blockSize = (int) ((max_memory) / 4);
+    }
     System.err.println("Memory block size is " + blockSize);
     return blockSize;
   }
 
   private void register() {
     TCThreadGroup thrdGrp = new TCThreadGroup(new ThrowableHandlerImpl(TCLogging.getLogger(LongGCLoggerTest.class)));
-    TCMemoryManagerImpl tcMemManager = new TCMemoryManagerImpl(1, 2, thrdGrp);
+    TCMemoryManagerImpl tcMemManager = new TCMemoryManagerImpl(250, 2, thrdGrp);
     LongGCLogger logger = new TestLongGCLogger(1);
     tcMemManager.registerForMemoryEvents(logger);
   }

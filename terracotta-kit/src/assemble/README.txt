@@ -53,5 +53,6 @@ match the one used by the Terracotta Server. Control the JVM that the Terracotta
 uses by setting the JAVA_HOME environment variable.
 
 ----
-All content copyright Terracotta, Inc., unless otherwise indicated. All rights reserved. 
+Copyright Terracotta, Inc.
+Copyright Super iPaaS Integration LLC, an IBM Company 2024
 http://www.terracotta.org

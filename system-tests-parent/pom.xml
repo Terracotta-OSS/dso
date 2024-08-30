@@ -1,19 +1,19 @@
 <?xml version="1.0"?>
 <!--
-The contents of this file are subject to the Terracotta Public License Version
-2.0 (the "License"); You may not use this file except in compliance with the
-License. You may obtain a copy of the License at 
+   Copyright Terracotta, Inc.
+   Copyright Super iPaaS Integration LLC, an IBM Company 2024
 
-     http://terracotta.org/legal/terracotta-public-license.
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
 
-Software distributed under the License is distributed on an "AS IS" basis,
-WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
-the specific language governing rights and limitations under the License.
+       http://www.apache.org/licenses/LICENSE-2.0
 
-The Covered Software is Terracotta Platform.
-
-The Initial Developer of the Covered Software is
-     Terracotta, Inc., a Software AG company
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
@@ -21,8 +21,7 @@ The Initial Developer of the Covered Software is
   <parent>
     <groupId>org.terracotta</groupId>
     <artifactId>terracotta-root</artifactId>
-    <version>4.3.10-SNAPSHOT</version>
-    <relativePath>..</relativePath>
+    <version>4.4.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>system-tests-parent</artifactId>
@@ -33,14 +32,14 @@ The Initial Developer of the Covered Software is
 
   <licenses>
     <license>
-      <name>Terracotta Public License</name>
-      <url>http://www.terracotta.org/license.txt</url>
+      <name>The Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
     </license>
   </licenses>
 
   <properties>
     <tcmaven.version>2.1.0</tcmaven.version>
-    <terracotta.core.version>4.3.10-SNAPSHOT</terracotta.core.version>
+    <terracotta.core.version>4.4.1-SNAPSHOT</terracotta.core.version>
     <tc.core.groupId>org.terracotta</tc.core.groupId>
     <tc.core.artifactId>terracotta</tc.core.artifactId>
     <tc.management.war.groupId>org.terracotta</tc.management.war.groupId>
@@ -48,16 +47,13 @@ The Initial Developer of the Covered Software is
     <productKeyPath/>
     <ee.license>-Dcom.tc.productkey.path=${productKeyPath}</ee.license>
     <!-- must not be a SNAPSHOT, pipeline checks for that -->
-    <container-test-framework.version>3.0.4</container-test-framework.version>
+    <container-test-framework.version>4.0.1</container-test-framework.version>
 
     <tc.tests.configuration.properties.file>${project.build.testOutputDirectory}/tc.tests.properties</tc.tests.configuration.properties.file>
     <tc.system.tests.properties>${project.build.testOutputDirectory}/com/tc/properties/tests.properties</tc.system.tests.properties>
 
-    <groovy-maven-plugin.version>2.1.1</groovy-maven-plugin.version>
-    <groovy.version>2.5.8</groovy.version>
-
-    <cargo-maven2-plugin.version>1.7.11</cargo-maven2-plugin.version>
-    <tc.linked-child-process.version>1.0.17</tc.linked-child-process.version>
+    <cargo-maven2-plugin.version>1.9.13</cargo-maven2-plugin.version>
+    <tc.linked-child-process.version>2.0.2</tc.linked-child-process.version>
     <maven-appserver-plugin.version>1.0.5</maven-appserver-plugin.version>
     <tc.config>-Dtc.config=tc-config.xml</tc.config>
     <tc.base-dir>${project.build.directory}</tc.base-dir>
@@ -74,7 +70,20 @@ The Initial Developer of the Covered Software is
     <surefire.max-memory>1g</surefire.max-memory>
     <surefire.additional-jvm-args/>
     <surefire.additional-jvm-module-args/>
-    <surefire.argLine>-server -Xms${surefire.min-memory} -Xmx${surefire.max-memory} ${surefire.additional-jvm-module-args} ${surefire.additional-jvm-args} -Dtc.base-dir=${tc.base-dir} ${tc.config} -Dtc.dso.globalmode=${tc.dso.globalmode} -Dtc.tests.info.property-files=${tc.tests.info.property-files} -Dcom.tc.properties=${tc.system.tests.properties} -Dcom.sun.management.jmxremote ${ee.license}</surefire.argLine>
+    <surefire.argLine>-server
+      -Xms${surefire.min-memory}
+      -Xmx${surefire.max-memory}
+      ${surefire.additional-jvm-module-args}
+      ${surefire.additional-jvm-args}
+      -Dtc.base-dir=${tc.base-dir}
+      ${tc.config}
+      -Dtc.dso.globalmode=${tc.dso.globalmode}
+      -Dtc.tests.info.property-files=${tc.tests.info.property-files}
+      -Dcom.tc.properties=${tc.system.tests.properties}
+      -Dcom.sun.management.jmxremote
+      ${ee.license}
+      -Djdk.attach.allowAttachSelf
+    </surefire.argLine>
 
     <!--
         Unfortunately, this silly localMavenRepository property is necessary
@@ -82,6 +91,7 @@ The Initial Developer of the Covered Software is
         C:\DOCUME~1\${user.name}\.m2\repository to avoid spaces in the path
         (see the container-tests-windows profile definition).
     -->
+    <skipTests>true</skipTests> <!-- turned on if -Psystem-tests is passed -->
     <localMavenRepository>${user.home}/.m2/repository</localMavenRepository>
     <os-classifier>linux</os-classifier>
   </properties>
@@ -145,7 +155,7 @@ The Initial Developer of the Covered Software is
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
+      <artifactId>mockito-inline</artifactId>
     </dependency>
     <!-- This isn't published and external things use this project as a parent
     <dependency>
@@ -186,46 +196,8 @@ The Initial Developer of the Covered Software is
           <version>${cargo-maven2-plugin.version}</version>
         </plugin>
         <plugin>
-          <groupId>org.terracotta</groupId>
-          <artifactId>maven-forge-plugin</artifactId>
-          <version>${maven-forge-plugin.version}</version>
-          <!--
-            Only integration tests in this module.
-            This should be run with -Psystem-tests to pick up forge-parent profile
-            ITs must run after maven-appserver-plugin sets up in pre-integration-test
-          -->
-          <configuration>
-            <forkCount>1</forkCount>
-            <reuseForks>false</reuseForks>
-            <printSummary>true</printSummary>
-            <forkedProcessTimeoutInSeconds>${absolute-test-timeout-secs}</forkedProcessTimeoutInSeconds>
-            <useSystemClassLoader>true</useSystemClassLoader>
-            <workingDirectory>${project.build.directory}</workingDirectory>
-            <argLine>${surefire.argLine}</argLine>
-            <excludes>
-              <exclude>**/Abstract*.java</exclude>
-            </excludes>
-            <properties>
-              <property>
-                <name>listener</name>
-                <value>net.sf.ehcache.SystemExitListener</value>
-              </property>
-            </properties>
-          </configuration>
-          <executions>
-            <execution>
-              <id>setl2classpath</id>
-              <phase>generate-test-resources</phase>
-              <goals>
-                <goal>setl2classpath</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
           <groupId>org.codehaus.gmaven</groupId>
           <artifactId>groovy-maven-plugin</artifactId>
-          <version>${groovy-maven-plugin.version}</version>
           <executions>
             <execution>
               <id>generate-test-properties</id>
@@ -262,7 +234,6 @@ The Initial Developer of the Covered Software is
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
-          <version>3.1.1</version>
           <executions>
             <execution>
               <id>build-full-classpath</id>
@@ -312,7 +283,6 @@ The Initial Developer of the Covered Software is
         <plugin>
            <groupId>org.apache.maven.plugins</groupId>
            <artifactId>maven-install-plugin</artifactId>
-           <version>3.0.0-M1</version>
            <configuration>
               <groupId>org.terracotta</groupId>
               <artifactId>system-test-parent</artifactId>
@@ -345,12 +315,79 @@ The Initial Developer of the Covered Software is
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
-        <version>1.2</version>
       </plugin>
     </plugins>
   </build>
 
   <profiles>
+    <profile>
+      <id>system-tests</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.terracotta</groupId>
+            <artifactId>maven-forge-plugin</artifactId>
+            <configuration>
+              <forkCount>1</forkCount>
+              <reuseForks>false</reuseForks>
+              <printSummary>true</printSummary>
+              <forkedProcessTimeoutInSeconds>${absolute-test-timeout-secs}</forkedProcessTimeoutInSeconds>
+              <useSystemClassLoader>true</useSystemClassLoader>
+              <useManifestOnlyJar>true</useManifestOnlyJar>
+              <trimStackTrace>false</trimStackTrace>
+              <workingDirectory>${project.build.directory}</workingDirectory>
+              <argLine>${surefire.argLine}</argLine>
+              <includes>
+                <include>**/*Test.java</include>
+                <include>**/*IT.java</include>
+              </includes>
+              <excludes>
+                <exclude>**/Abstract*.java</exclude>
+                <exclude>**/*TestSetup.java</exclude>
+                <exclude>**/*TestBase.java</exclude>
+                <exclude>**/TCTestCase.java</exclude>
+                <exclude>**/*$*</exclude>
+              </excludes>
+              <properties>
+                <property>
+                  <name>listener</name>
+                  <value>net.sf.ehcache.SystemExitListener</value>
+                </property>
+              </properties>
+            </configuration>
+            <executions>
+              <execution>
+                <id>default-test</id>
+                <phase>none</phase>
+              </execution>
+              <execution>
+                <id>default-integration-test</id>
+                <goals>
+                  <goal>integration-test</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>default-verify</id>
+                <goals>
+                  <goal>verify</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>setl2classpath</id>
+                <phase>generate-test-resources</phase>
+                <goals>
+                  <goal>setl2classpath</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
     <profile>
       <id>workaround-windows</id>
       <activation>
@@ -407,6 +444,7 @@ The Initial Developer of the Covered Software is
           <plugin>
             <groupId>org.terracotta.maven.plugins</groupId>
             <artifactId>tc-maven-plugin</artifactId>
+            <version>2.1.0</version>
             <executions>
               <execution>
                 <id>server1start</id>

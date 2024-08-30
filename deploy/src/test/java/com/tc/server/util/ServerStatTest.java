@@ -1,26 +1,26 @@
-/* 
- * The contents of this file are subject to the Terracotta Public License Version
- * 2.0 (the "License"); You may not use this file except in compliance with the
- * License. You may obtain a copy of the License at 
+/*
+ * Copyright Terracotta, Inc.
+ * Copyright Super iPaaS Integration LLC, an IBM Company 2024
  *
- *      http://terracotta.org/legal/terracotta-public-license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * The Covered Software is Terracotta Platform.
- *
- * The Initial Developer of the Covered Software is 
- *      Terracotta, Inc., a Software AG company
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.tc.server.util;
 
+import java.util.Collections;
 import org.junit.Test;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,7 +35,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.anyVararg;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -68,8 +67,8 @@ public class ServerStatTest {
     WebTarget target = mockWebTarget("host", 4321);
     when(target.request(MediaType.APPLICATION_JSON_TYPE).get().getStatus()).thenReturn(403);
     when(target.request(MediaType.APPLICATION_JSON_TYPE)
-        .get()
-        .readEntity(any(Class.class))).thenReturn(Collections.singletonMap("error", errorMessage));
+            .get()
+            .readEntity(any(Class.class))).thenReturn(Collections.singletonMap("error", errorMessage));
     ServerStat stats = ServerStat.getStats(target);
     assertErrorStats(stats);
     assertThat(stats.toString(), containsString(errorMessage));
@@ -107,7 +106,7 @@ public class ServerStatTest {
     WebTarget target = mock(WebTarget.class);
     when(target.getUri()).thenReturn(new URI("http://" + host + ":" + port));
     when(target.path(anyString())).thenReturn(target);
-    when(target.request((MediaType[]) anyVararg())).thenReturn(builder);
+    when(target.request((MediaType[]) any())).thenReturn(builder);
     return target;
   }
 }

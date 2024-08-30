@@ -1,28 +1,20 @@
-/* 
- * The contents of this file are subject to the Terracotta Public License Version
- * 2.0 (the "License"); You may not use this file except in compliance with the
- * License. You may obtain a copy of the License at 
+/*
+ * Copyright Terracotta, Inc.
+ * Copyright Super iPaaS Integration LLC, an IBM Company 2024
  *
- *      http://terracotta.org/legal/terracotta-public-license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * The Covered Software is Terracotta Platform.
- *
- * The Initial Developer of the Covered Software is 
- *      Terracotta, Inc., a Software AG company
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.tc.test.config.builder;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.xmlbeans.XmlException;
-import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.tc.config.Loader;
 import com.tc.test.TestConfigUtil;
@@ -34,8 +26,14 @@ import com.terracottatech.config.Server;
 import com.terracottatech.config.TcConfigDocument;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.xmlbeans.XmlException;
+import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -211,10 +209,23 @@ public class ClusterManager {
     return tcConfig.serverAt(groupIdx, serverIdx).getName();
   }
 
+  // TODO: If we remove devmode, this method can be removed and just use ProductInfo directly
+
+  private static final String detectEdition() {
+    String edition = ProductInfo.OPENSOURCE;
+    try {
+      Class.forName("com.tc.util.ProductInfoEnterpriseBundle");
+      edition = ProductInfo.ENTERPRISE;
+    } catch (ClassNotFoundException e) {
+      // ignore
+    }
+    return edition;
+  }
+
   public static String findAgentWarLocation(String version) {
     String groupId = "org.terracotta";
     String artifactId = "management-tsa-war";
-    if (ProductInfo.ENTERPRISE.equals(ProductInfo.getInstance().edition())) {
+    if (ProductInfo.ENTERPRISE.equals(detectEdition())) {
       groupId = "com.terracottatech";
       artifactId = "ent-management-tsa-war";
     }
@@ -285,7 +296,7 @@ public class ClusterManager {
   }
 
   private static void https_waitUntilTsaAgentInitialized(int port) throws Exception {
-    HttpClient httpClient = new HttpClient(new SslContextFactory(true));
+    HttpClient httpClient = new HttpClient();
     try {
       httpClient.start();
       waitForAgentInitialization(port, httpClient, ClusterManager::contentTypeIsJson);
@@ -295,7 +306,7 @@ public class ClusterManager {
   }
 
   private static void https_waitUntilL1ThroughTsaAgentInitialized(int port) throws Exception {
-    HttpClient httpClient = new HttpClient(new SslContextFactory(true));
+    HttpClient httpClient = new HttpClient();
     try {
       httpClient.start();
       waitForAgentInitialization(port, httpClient, ClusterManager::responseContainsAgencyEhcache);
@@ -307,7 +318,7 @@ public class ClusterManager {
   private static void http_waitUntilTsaAgentInitialized(int port) {
     for (int i = 0; i < 30; i++) {
       try {
-        URL url = new URL("http://localhost:" + port + "/tc-management-api/agents");
+        URL url = new URL("http://localhost:" + port + "/tc-management-api/v2/agents");
         URLConnection urlConnection = url.openConnection();
         InputStream inputStream = urlConnection.getInputStream();
         IOUtils.copy(inputStream, new OutputStream() {
@@ -329,7 +340,7 @@ public class ClusterManager {
   private static void http_waitUntilL1ThroughTsaAgentInitialized(int port) {
     for (int i = 0; i < 30; i++) {
       try {
-        URL url = new URL("http://localhost:" + port + "/tc-management-api/agents");
+        URL url = new URL("http://localhost:" + port + "/tc-management-api/v2/agents");
         URLConnection urlConnection = url.openConnection();
         InputStream inputStream = urlConnection.getInputStream();
         Writer writer = new StringWriter();
@@ -364,7 +375,7 @@ public class ClusterManager {
 
   private static void waitForAgentInitialization(int port, HttpClient httpClient, Predicate<ContentResponse> predicate) throws InterruptedException, TimeoutException, ExecutionException {
     for (int i = 0; i < 30; i++) {
-      Request request = httpClient.newRequest("https://localhost:" + port + "/tc-management-api/agents");
+      Request request = httpClient.newRequest("https://localhost:" + port + "/tc-management-api/v2/agents");
       ContentResponse send = request.send();
       boolean success = predicate.test(send);
       if (success) {

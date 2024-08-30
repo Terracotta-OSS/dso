@@ -1,24 +1,23 @@
-/* 
- * The contents of this file are subject to the Terracotta Public License Version
- * 2.0 (the "License"); You may not use this file except in compliance with the
- * License. You may obtain a copy of the License at 
+/*
+ * Copyright Terracotta, Inc.
+ * Copyright Super iPaaS Integration LLC, an IBM Company 2024
  *
- *      http://terracotta.org/legal/terracotta-public-license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * The Covered Software is Terracotta Platform.
- *
- * The Initial Developer of the Covered Software is 
- *      Terracotta, Inc., a Software AG company
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.tc.objectserver.impl;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Answers;
 
 import com.tc.async.api.Sink;
 import com.tc.async.api.Stage;
@@ -35,8 +34,10 @@ import com.tc.objectserver.persistence.EvictionTransactionPersistor;
 
 import java.util.Collections;
 
+import static org.mockito.Answers.RETURNS_MOCKS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
 public class ServerMapEvictionEngineTest {
   private ServerMapEvictionEngine serverMapEvictionEngine;
@@ -46,7 +47,7 @@ public class ServerMapEvictionEngineTest {
   public void setUp() throws Exception {
     serverMapEvictionEngine = new ServerMapEvictionEngine(mock(ObjectManager.class),
         new ServerTransactionFactory(ServerID.NULL_ID), mock(EvictionTransactionPersistor.class), true);
-    ServerConfigurationContext scc = mock(ServerConfigurationContext.class, Answers.RETURNS_MOCKS.get());
+    ServerConfigurationContext scc = mock(ServerConfigurationContext.class, withSettings().defaultAnswer(RETURNS_MOCKS));
     lwmUpdateSink = mock(Sink.class);
     Stage lwmUpdateStage = mock(Stage.class);
     when(lwmUpdateStage.getSink()).thenReturn(lwmUpdateSink);

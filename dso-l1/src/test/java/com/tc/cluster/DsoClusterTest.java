@@ -1,23 +1,21 @@
-/* 
- * The contents of this file are subject to the Terracotta Public License Version
- * 2.0 (the "License"); You may not use this file except in compliance with the
- * License. You may obtain a copy of the License at 
+/*
+ * Copyright Terracotta, Inc.
+ * Copyright Super iPaaS Integration LLC, an IBM Company 2024
  *
- *      http://terracotta.org/legal/terracotta-public-license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * The Covered Software is Terracotta Platform.
- *
- * The Initial Developer of the Covered Software is 
- *      Terracotta, Inc., a Software AG company
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.tc.cluster;
 
-import org.mockito.Matchers;
-import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -54,17 +52,22 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import junit.framework.TestCase;
 
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 public class DsoClusterTest extends TestCase {
 
   private DsoClusterImpl cluster;
 
   @Override
   protected void setUp() throws Exception {
-    cluster = new DsoClusterImpl(Mockito.mock(RejoinManagerInternal.class));
-    Stage mockStage = Mockito.mock(Stage.class);
-    Sink mockSink = Mockito.mock(Sink.class);
-    Mockito.when(mockStage.getSink()).thenReturn(mockSink);
-    Mockito.doAnswer(new Answer<Void>() {
+    cluster = new DsoClusterImpl(mock(RejoinManagerInternal.class));
+    Stage mockStage = mock(Stage.class);
+    Sink mockSink = mock(Sink.class);
+    when(mockStage.getSink()).thenReturn(mockSink);
+    doAnswer(new Answer<Void>() {
 
       @Override
       public Void answer(InvocationOnMock invocation) throws Throwable {
@@ -74,7 +77,7 @@ public class DsoClusterTest extends TestCase {
         return null;
       }
 
-    }).when(mockSink).add(Matchers.any(EventContext.class));
+    }).when(mockSink).add(any(EventContext.class));
     cluster.init(new MockClusterMetaDataManager(), null, mockStage);
   }
 

@@ -1,18 +1,18 @@
-/* 
- * The contents of this file are subject to the Terracotta Public License Version
- * 2.0 (the "License"); You may not use this file except in compliance with the
- * License. You may obtain a copy of the License at 
+/*
+ * Copyright Terracotta, Inc.
+ * Copyright Super iPaaS Integration LLC, an IBM Company 2024
  *
- *      http://terracotta.org/legal/terracotta-public-license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * The Covered Software is Terracotta Platform.
- *
- * The Initial Developer of the Covered Software is 
- *      Terracotta, Inc., a Software AG company
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.tc.objectserver.tx;
 
@@ -184,12 +184,8 @@ public class ServerTransactionManagerImpl implements ServerTransactionManager, S
     return out;
   }
 
-  /**
-   * Shutdown clients are not cleared immediately. Only on completing of all txns this is processed.
-   */
-  @Override
-  public synchronized void shutdownNode(final NodeID deadNodeID) {
-    // acknowledgement can invoke backup callback which requires instance-level sync
+  private synchronized boolean cleanupTransactionAccount(final NodeID deadNodeID) {
+       // acknowledgement can invoke backup callback which requires instance-level sync
     boolean callBackAdded = false;
     synchronized (this.transactionAccounts) {
 
@@ -223,8 +219,15 @@ public class ServerTransactionManagerImpl implements ServerTransactionManager, S
         }
       }
     }
+    return callBackAdded;
+  }
 
-    if (!callBackAdded) {
+  /**
+   * Shutdown clients are not cleared immediately. Only on completing of all txns this is processed.
+   */
+  @Override
+  public void shutdownNode(final NodeID deadNodeID) {
+    if (!cleanupTransactionAccount(deadNodeID)) {
       this.stateManager.shutdownNode(deadNodeID);
       if (deadNodeID instanceof ClientID) {
         this.lockManager.clearAllLocksFor((ClientID) deadNodeID);

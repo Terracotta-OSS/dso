@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-The contents of this file are subject to the Terracotta Public License Version
-2.0 (the "License"); You may not use this file except in compliance with the
-License. You may obtain a copy of the License at 
+   Copyright Terracotta, Inc.
+   Copyright Super iPaaS Integration LLC, an IBM Company 2024
 
-     http://terracotta.org/legal/terracotta-public-license.
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
 
-Software distributed under the License is distributed on an "AS IS" basis,
-WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
-the specific language governing rights and limitations under the License.
+       http://www.apache.org/licenses/LICENSE-2.0
 
-The Covered Software is Terracotta Platform.
-
-The Initial Developer of the Covered Software is 
-     Terracotta, Inc., a Software AG company
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
@@ -22,7 +22,7 @@ The Initial Developer of the Covered Software is
   <parent>
     <groupId>org.terracotta</groupId>
     <artifactId>terracotta-parent</artifactId>
-    <version>4.3.10-SNAPSHOT</version>
+    <version>4.4.1-SNAPSHOT</version>
     <relativePath>../terracotta-parent/pom.xml</relativePath>
   </parent>
 
@@ -36,7 +36,7 @@ The Initial Developer of the Covered Software is
     <kit.name>${product.name}-${project.version}</kit.name>
     <root.dir>${project.build.directory}/${kit.name}</root.dir>
 
-    <ehcache.version>2.10.10-SNAPSHOT</ehcache.version>
+    <ehcache.version>2.11.1-SNAPSHOT</ehcache.version>
     <toolkit-api.version>2.1.0</toolkit-api.version>
     <escrow-maven-plugin.version>1.0.3-SNAPSHOT</escrow-maven-plugin.version>
     <management-cli.version>${project.version}</management-cli.version>
@@ -117,81 +117,32 @@ The Initial Developer of the Covered Software is
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
-        <version>3.1.1</version>
         <executions>
           <execution>
-            <!-- this generates "ehcache/lib/slf4j-api-1.7.25.jar ehcache/lib/ehcache-2.10.10-SNAPSHOT.jar" to be used below -->
-            <!-- this way we don't need to hardcode slf4j version that's defined in the bom -->
-            <id>resolve-dep-versions</id>
+            <id>resolve-ehcache-path</id>
             <goals>
               <goal>build-classpath</goal>
             </goals>
             <configuration>
-              <includeArtifactIds>slf4j-api,ehcache</includeArtifactIds>
-              <outputProperty>terracotta.client.dependency.classpath</outputProperty>
-              <pathSeparator>&#160;</pathSeparator>
+              <includeArtifactIds>ehcache</includeArtifactIds>
+              <outputProperty>ehcache.path</outputProperty>
               <prefix>ehcache/lib</prefix>
             </configuration>
           </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <executions>
           <execution>
-            <id>terracotta-client-all</id>
-            <phase>prepare-package</phase>
+            <id>resolve-slf4j-api-path</id>
             <goals>
-              <goal>jar</goal>
+              <goal>build-classpath</goal>
             </goals>
             <configuration>
-              <archive>
-                <manifest>
-                  <addClasspath>false</addClasspath>
-                </manifest>
-                <manifestEntries>
-                  <Class-Path>${terracotta.client.dependency.classpath} toolkit/lib/terracotta-toolkit-runtime-${project.version}.jar</Class-Path>
-                </manifestEntries>
-              </archive>
-              <excludes>
-                <exclude>**</exclude>
-              </excludes>
-
-              <finalName>ehcache-terracotta-client-all</finalName>
+              <includeArtifactIds>slf4j-api</includeArtifactIds>
+              <outputProperty>slf4j-api.path</outputProperty>
+              <prefix>ehcache/lib</prefix>
             </configuration>
           </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.terracotta</groupId>
-        <artifactId>maven-forge-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>prepare-server-lib</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <artifacts>
-                <param>org.terracotta:terracotta:${project.version}</param>
-              </artifacts>
-              <resolveTransitively>true</resolveTransitively>
-              <outputDir>${project.build.directory}/server-lib</outputDir>          
-            </configuration>
-
-          </execution> 
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>2.8</version>
-        <executions>
           <execution>
             <id>copy</id>
-            <phase>package</phase>
+            <phase>prepare-package</phase>
             <goals>
               <goal>copy-dependencies</goal>
             </goals>
@@ -199,11 +150,10 @@ The Initial Developer of the Covered Software is
               <includeTypes>war</includeTypes>
               <outputDirectory>${project.build.directory}/server-lib</outputDirectory>
             </configuration>
-
           </execution>
           <execution>
             <id>unpack</id>
-            <phase>package</phase>
+            <phase>prepare-package</phase>
             <goals>
               <goal>unpack</goal>
             </goals>
@@ -234,7 +184,7 @@ The Initial Developer of the Covered Software is
                   <overWrite>false</overWrite>
                   <outputDirectory>${project.build.directory}</outputDirectory>
                 </artifactItem>
-                 <artifactItem>
+                <artifactItem>
                   <groupId>org.terracotta</groupId>
                   <artifactId>server-script</artifactId>
                   <version>${project.version}</version>
@@ -247,8 +197,76 @@ The Initial Developer of the Covered Software is
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>terracotta-client-all</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <archive>
+                <manifest>
+                  <addClasspath>false</addClasspath>
+                </manifest>
+                <manifestEntries>
+                  <Class-Path>${ehcache.path} ${slf4j-api.path} toolkit/lib/terracotta-toolkit-runtime-${project.version}.jar</Class-Path>
+                </manifestEntries>
+              </archive>
+              <excludes>
+                <exclude>**</exclude>
+              </excludes>
+              <finalName>ehcache-terracotta-client-all</finalName>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.terracotta</groupId>
+        <artifactId>maven-forge-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>prepare-server-lib</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <artifacts>
+                <param>org.terracotta:terracotta:${project.version}</param>
+              </artifacts>
+              <resolveTransitively>true</resolveTransitively>
+              <outputDir>${project.build.directory}/server-lib</outputDir>          
+            </configuration>
+          </execution>
+          <execution>
+            <id>default-integration-test</id>
+            <goals>
+              <goal>integration-test</goal>
+            </goals>
+            <configuration>
+              <skipTests>false</skipTests>
+              <systemPropertyVariables>
+                <project.version>${project.version}</project.version>
+              </systemPropertyVariables>
+            </configuration>
+          </execution>
+          <execution>
+            <id>default-verify</id>
+            <goals>
+              <goal>verify</goal>
+            </goals>
+            <configuration>
+              <skipTests>false</skipTests>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.4</version>
         <configuration>
           <finalName>terracotta-${project.version}</finalName>
           <appendAssemblyId>false</appendAssemblyId>
@@ -270,7 +288,29 @@ The Initial Developer of the Covered Software is
             </goals>
           </execution>
         </executions>
-      </plugin>      
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>testResources</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>testCompile</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
@@ -321,11 +361,10 @@ The Initial Developer of the Covered Software is
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-dependency-plugin</artifactId>
-            <version>2.8</version>
             <executions>
               <execution>
                 <id>unpack-javadoc</id>
-                <phase>package</phase>
+                <phase>prepare-package</phase>
                 <goals>
                   <goal>unpack</goal>
                 </goals>

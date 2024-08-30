@@ -1,31 +1,30 @@
-/* 
- * The contents of this file are subject to the Terracotta Public License Version
- * 2.0 (the "License"); You may not use this file except in compliance with the
- * License. You may obtain a copy of the License at 
+/*
+ * Copyright Terracotta, Inc.
+ * Copyright Super iPaaS Integration LLC, an IBM Company 2024
  *
- *      http://terracotta.org/legal/terracotta-public-license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * The Covered Software is Terracotta Platform.
- *
- * The Initial Developer of the Covered Software is 
- *      Terracotta, Inc., a Software AG company
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.tc.object.servermap.localcache.impl;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.junit.Test;
-import org.mockito.Matchers;
-import org.mockito.Mockito;
 import org.mockito.exceptions.verification.TooManyActualInvocations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -103,17 +102,17 @@ public class ServerMapLocalCacheImplTest extends TestCase {
     maxInMemory = maxElementsInMemory;
     sink = new MySink();
     globalLocalCacheManager = new L1ServerMapLocalCacheManagerImpl(null, sink, new TxnCompleteSink(),
-                                                                   Mockito.mock(Sink.class));
+                                                                   mock(Sink.class));
     mockTCObjectSelfCallback = new MockTCObjectSelfCallback();
     globalLocalCacheManager.initializeTCObjectSelfStore(mockTCObjectSelfCallback);
     sink.setGlobalLocalCacheManager(globalLocalCacheManager);
     final ClientTransaction clientTransaction = new MyClientTransaction(barrier, transactionAbort);
-    ClientObjectManager com = Mockito.mock(ClientObjectManager.class);
-    ClientTransactionManager ctm = Mockito.mock(ClientTransactionManager.class);
-    Mockito.when(com.getTransactionManager()).thenReturn(ctm);
-    Mockito.when(ctm.getCurrentTransaction()).thenReturn(clientTransaction);
-    ps = Mockito.mock(PlatformService.class);
-    Mockito.when(ps.isLockAwardValid(Matchers.any(LockID.class), Matchers.anyLong())).thenAnswer(new Answer() {
+    ClientObjectManager com = mock(ClientObjectManager.class);
+    ClientTransactionManager ctm = mock(ClientTransactionManager.class);
+    when(com.getTransactionManager()).thenReturn(ctm);
+    when(ctm.getCurrentTransaction()).thenReturn(clientTransaction);
+    ps = mock(PlatformService.class);
+    when(ps.isLockAwardValid(any(LockID.class), anyLong())).thenAnswer(new Answer() {
       @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
@@ -122,7 +121,7 @@ public class ServerMapLocalCacheImplTest extends TestCase {
     });
     localCacheStore = new L1ServerMapLocalCacheStoreHashMap(maxElementsInMemory);
     cache = (ServerMapLocalCacheImpl) globalLocalCacheManager
-        .getOrCreateLocalCache(mapID, com, ps, true, localCacheStore, Mockito.mock(PinnedEntryFaultCallback.class));
+        .getOrCreateLocalCache(mapID, com, ps, true, localCacheStore, mock(PinnedEntryFaultCallback.class));
   }
 
   public void testDev6522() throws InterruptedException, BrokenBarrierException {
@@ -148,20 +147,20 @@ public class ServerMapLocalCacheImplTest extends TestCase {
     lockIDandAwardIDMapping.put(lockOid, 1L);
     MockModesAdd.addStrongValueToCacheWithAwardID(cache, this.globalLocalCacheManager, key, lockOid, strongEntry,
                                                   mapID, MapOperationType.PUT, 1L);
-    Mockito.verify(ps, Mockito.times(1)).pinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
+    verify(ps, times(1)).pinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
     barier.await();
     barier.await();
-    Mockito.verify(ps, Mockito.times(2)).pinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
-    Mockito.verify(ps, Mockito.times(1)).unpinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
+    verify(ps, times(2)).pinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
+    verify(ps, times(1)).unpinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
 
     // should call pin again even with same lock id and award id (outgoing old value will unpin)
     MockModesAdd.addStrongValueToCacheWithAwardID(cache, this.globalLocalCacheManager, key, lockOid, strongEntry,
                                                   mapID, MapOperationType.PUT, 1L);
-    Mockito.verify(ps, Mockito.times(3)).pinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
+    verify(ps, times(3)).pinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
     barier.await();
     barier.await();
-    Mockito.verify(ps, Mockito.times(4)).pinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
-    Mockito.verify(ps, Mockito.times(3)).unpinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
+    verify(ps, times(4)).pinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
+    verify(ps, times(3)).unpinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
     // should pin for different lock id and key
     lockId = 101;
     strongOid = 2 * lockId;
@@ -172,11 +171,11 @@ public class ServerMapLocalCacheImplTest extends TestCase {
     MockModesAdd.addStrongValueToCacheWithAwardID(cache, this.globalLocalCacheManager, key, lockOid, strongEntry,
                                                   mapID, MapOperationType.PUT, 1L);
 
-    Mockito.verify(ps, Mockito.times(1)).pinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
+    verify(ps, times(1)).pinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
     barier.await();
     barier.await();
-    Mockito.verify(ps, Mockito.times(2)).pinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
-    Mockito.verify(ps, Mockito.times(1)).unpinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
+    verify(ps, times(2)).pinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
+    verify(ps, times(1)).unpinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
 
   }
 
@@ -192,12 +191,12 @@ public class ServerMapLocalCacheImplTest extends TestCase {
     lockIDandAwardIDMapping.put(lockOid, 1L);
     MockModesAdd.addStrongValueToCacheWithAwardID(cache, this.globalLocalCacheManager, key, lockOid, strongEntry,
                                                   mapID, MapOperationType.PUT, 1L);
-    Mockito.verify(ps, Mockito.times(1)).pinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
-    Mockito.verify(ps, Mockito.never()).unpinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
+    verify(ps, times(1)).pinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
+    verify(ps, never()).unpinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
     barier.await();
     barier.await();
-    Mockito.verify(ps, Mockito.times(1)).pinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
-    Mockito.verify(ps, Mockito.times(1)).unpinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
+    verify(ps, times(1)).pinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
+    verify(ps, times(1)).unpinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
 
   }
 
@@ -213,10 +212,10 @@ public class ServerMapLocalCacheImplTest extends TestCase {
       lockIDandAwardIDMapping.put(lockOid, 1L);
       MockModesAdd.addStrongValueToCacheWithAwardID(cache, this.globalLocalCacheManager, key, lockOid, strongEntry,
                                                     mapID, MapOperationType.PUT, 1L);
-      Mockito.verify(ps, Mockito.times(1)).pinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
+      verify(ps, times(1)).pinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
       barier.await();
       barier.await();
-      Mockito.verify(ps, Mockito.times(2)).pinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
+      verify(ps, times(2)).pinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
     }
 
     int pinned = 0;
@@ -225,11 +224,11 @@ public class ServerMapLocalCacheImplTest extends TestCase {
       long lockId = 100 + j;
       LockID lockOid = new LongLockID(lockId);
       try {
-        Mockito.verify(ps, Mockito.times(1)).unpinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
+        verify(ps, times(1)).unpinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
         pinned++;
       } catch (TooManyActualInvocations e) {
         // for evicted key unpin should be 2
-        Mockito.verify(ps, Mockito.times(2)).unpinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
+        verify(ps, times(2)).unpinLock(lockOid, lockIDandAwardIDMapping.get(lockOid));
         unpinned++;
       }
     }

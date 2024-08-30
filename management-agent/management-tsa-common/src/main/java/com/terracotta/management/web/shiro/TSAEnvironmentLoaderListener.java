@@ -1,26 +1,20 @@
 /*
- * The contents of this file are subject to the Terracotta Public License Version
- * 2.0 (the "License"); You may not use this file except in compliance with the
- * License. You may obtain a copy of the License at
+ * Copyright Terracotta, Inc.
+ * Copyright Super iPaaS Integration LLC, an IBM Company 2024
  *
- *      http://terracotta.org/legal/terracotta-public-license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * The Covered Software is Terracotta Platform.
- *
- * The Initial Developer of the Covered Software is
- *      Terracotta, Inc., a Software AG company
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.terracotta.management.web.shiro;
-
-import org.apache.shiro.web.env.EnvironmentLoaderListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.bridge.SLF4JBridgeHandler;
-import org.terracotta.management.ServiceLocator;
 
 import com.tc.properties.TCPropertiesConsts;
 import com.tc.properties.TCPropertiesImpl;
@@ -32,8 +26,11 @@ import com.terracotta.management.service.impl.TimeoutServiceImpl;
 import com.terracotta.management.service.impl.util.LocalManagementSource;
 import com.terracotta.management.service.impl.util.RemoteManagementSource;
 import com.terracotta.management.web.utils.TSAConfig;
+import org.apache.shiro.web.env.EnvironmentLoaderListener;
+import org.terracotta.management.ServiceLocator;
 
-import java.util.List;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletContextEvent;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.ServiceLoader;
@@ -45,9 +42,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletContextEvent;
-
 /**
  * @param <T>
  * @author Ludovic Orban
@@ -55,16 +49,6 @@ import javax.servlet.ServletContextEvent;
 public class TSAEnvironmentLoaderListener<T> extends EnvironmentLoaderListener {
 
   private static final int REJECTION_TIMEOUT = Integer.getInteger("com.tc.management.threadPools.rejectionTimeout", 25);
-
-  static {
-    // Optionally remove existing handlers attached to j.u.l root logger
-    SLF4JBridgeHandler.removeHandlersForRootLogger();  // (since SLF4J 1.6.5)
-    // add SLF4JBridgeHandler to j.u.l's root logger, should be done once during
-    // the initialization phase of your application
-    SLF4JBridgeHandler.install();
-  }
-
-  private static final Logger LOG = LoggerFactory.getLogger(TSAEnvironmentLoaderListener.class);
 
   private volatile ThreadPoolExecutor l1BridgeExecutorService;
   private volatile ThreadPoolExecutor tsaExecutorService;
@@ -137,11 +121,6 @@ public class TSAEnvironmentLoaderListener<T> extends EnvironmentLoaderListener {
       }
 
       ServiceLocator.load(serviceLocator);
-
-      List<String> strings = securitySetup.performSecurityChecks();
-      for (String string : strings) {
-        LOG.warn(string);
-      }
 
       super.contextInitialized(sce);
     } catch (Exception e) {

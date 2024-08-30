@@ -1,18 +1,18 @@
 /*
- * The contents of this file are subject to the Terracotta Public License Version
- * 2.0 (the "License"); You may not use this file except in compliance with the
- * License. You may obtain a copy of the License at
+ * Copyright Terracotta, Inc.
+ * Copyright Super iPaaS Integration LLC, an IBM Company 2024
  *
- *      http://terracotta.org/legal/terracotta-public-license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * The Covered Software is Terracotta Platform.
- *
- * The Initial Developer of the Covered Software is
- *      Terracotta, Inc., a Software AG company
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.tc.server;
 
@@ -25,6 +25,8 @@ import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.security.LoginService;
+import org.eclipse.jetty.security.RolePrincipal;
+import org.eclipse.jetty.security.UserPrincipal;
 import org.eclipse.jetty.security.authentication.BasicAuthenticator;
 import org.eclipse.jetty.security.AbstractLoginService;
 import org.eclipse.jetty.server.Handler;
@@ -81,7 +83,6 @@ import com.tc.logging.TCLogging;
 import com.tc.management.beans.L2MBeanNames;
 import com.tc.management.beans.L2State;
 import com.tc.management.beans.TCServerInfo;
-import com.tc.management.beans.TCServerInfoMBean;
 import com.tc.management.beans.TCServerInfoMBean.RestartMode;
 import com.tc.net.GroupID;
 import com.tc.net.OrderedGroupIDs;
@@ -590,7 +591,12 @@ public class TCServerImpl extends SEDA implements TCServer {
       }
 
       try {
+        for (Handler handler : this.contextHandlerCollection.getHandlers()) {
+          this.contextHandlerCollection.removeHandler(handler);
+          handler.stop();
+        }
         this.httpServer.stop();
+        this.httpServer.destroy();
       } catch (Exception e) {
         logger.error("Error shutting down HTTP server", e);
       } finally {
@@ -625,9 +631,9 @@ public class TCServerImpl extends SEDA implements TCServer {
       if (Runtime.getRuntime().maxMemory() != Long.MAX_VALUE) {
         consoleLogger.info("Available Max Runtime Memory: " + (Runtime.getRuntime().maxMemory() / 1024 / 1024) + "MB");
       }
-      SslContextFactory sslContextFactory = null;
+      SslContextFactory.Server sslContextFactory = null;
       if (securityManager != null) {
-        sslContextFactory = new SslContextFactory();
+        sslContextFactory = new SslContextFactory.Server();
         sslContextFactory.setSslContext(securityManager.getSslContext());
       }
 
@@ -647,7 +653,6 @@ public class TCServerImpl extends SEDA implements TCServer {
       };
       HttpConfiguration httpConfig = new HttpConfiguration();
       httpConfig.setSendServerVersion(false);
-      httpConfig.setBlockingTimeout(0); // make same as idle timeout (defaults to 30s.)
       Consumer<Socket> socketConsumer = enableReclaimer ? (socket) -> sockets.put(new PhantomReference<>(socket, referenceQueue), ((PipeSocket) socket).getDelegate()) : null;
       TCServerImpl.this.terracottaConnector = new TerracottaConnector(httpServer, new HttpConnectionFactory(httpConfig), socketConsumer);
       // connectors are named so that webapps can respond only on a specific one
@@ -760,17 +765,16 @@ public class TCServerImpl extends SEDA implements TCServer {
     HttpConfiguration httpConfig = new HttpConfiguration();
     httpConfig.setSecureScheme("https");
     httpConfig.setSendServerVersion(false);
-    httpConfig.setBlockingTimeout(0); // make same as idle timeout (defaults to 30s.)
 
     if (commonL2Config.isSecure()) {
-      SslContextFactory sslContextFactory = new SslContextFactory();
+      SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
       sslContextFactory.setSslContext(securityManager.getSslContext());
 
       // TAB-5271
       sslContextFactory.addExcludeProtocols(getVulnerableProtocols());
       // TAB-6658
       sslContextFactory.addExcludeCipherSuites((getVulnerableCipherSuites()));
-      httpConfig.addCustomizer(new SecureRequestCustomizer());
+      httpConfig.addCustomizer(new SecureRequestCustomizer(false));
 
       managementConnector = new ServerConnector(httpServer,
           new SslConnectionFactory(sslContextFactory, "http/1.1"),
@@ -942,11 +946,6 @@ public class TCServerImpl extends SEDA implements TCServer {
         WebAppContext restContext = new WebAppContext();
         restContext.setTempDirectory(warTempDir);
         restContext.setVirtualHosts(new String[] { "@" + CONNECTOR_NAME_MANAGEMENT });
-
-        // DEV-8020: add slf4j to the web app's system classes to avoid "multiple bindings" warning
-        List<String> systemClasses = new ArrayList<String>(Arrays.asList(restContext.getSystemClasses()));
-        systemClasses.add("org.slf4j.");
-        restContext.setSystemClasses(systemClasses.toArray(new String[systemClasses.size()]));
 
         restContext.setContextPath("/tc-management-api");
         restContext.setWar(warFile);
@@ -1230,12 +1229,12 @@ public class TCServerImpl extends SEDA implements TCServer {
 
     @Override
     protected UserPrincipal loadUserInfo(String username) {
-      throw new UnsupportedOperationException("Should not be called !");
+      throw new UnsupportedOperationException("Should not be called!");
     }
 
     @Override
-    protected String[] loadRoleInfo(UserPrincipal user) {
-      throw new UnsupportedOperationException("Should not be called !");
+    protected List<RolePrincipal> loadRoleInfo(UserPrincipal user) {
+      throw new UnsupportedOperationException("Should not be called!");
     }
   }
 

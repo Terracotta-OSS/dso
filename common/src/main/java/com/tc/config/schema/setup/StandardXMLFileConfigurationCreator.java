@@ -1,18 +1,18 @@
-/* 
- * The contents of this file are subject to the Terracotta Public License Version
- * 2.0 (the "License"); You may not use this file except in compliance with the
- * License. You may obtain a copy of the License at 
+/*
+ * Copyright Terracotta, Inc.
+ * Copyright Super iPaaS Integration LLC, an IBM Company 2024
  *
- *      http://terracotta.org/legal/terracotta-public-license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * The Covered Software is Terracotta Platform.
- *
- * The Initial Developer of the Covered Software is 
- *      Terracotta, Inc., a Software AG company
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.tc.config.schema.setup;
 
@@ -81,7 +81,7 @@ public class StandardXMLFileConfigurationCreator implements ConfigurationCreator
   private static final long          GET_CONFIGURATION_ONE_SOURCE_TIMEOUT = TCPropertiesImpl
                                                                               .getProperties()
                                                                               .getLong(TCPropertiesConsts.TC_CONFIG_SOURCEGET_TIMEOUT,
-                                                                                       30000);
+                                                                                       10000);
 
   private final ConfigurationSpec    configurationSpec;
   private final ConfigBeanFactory    beanFactory;
@@ -260,7 +260,7 @@ public class StandardXMLFileConfigurationCreator implements ConfigurationCreator
                                                            MutableBeanRepository tcPropertiesRepository,
                                                            boolean isClient) throws ConfigurationSetupException {
     long startTime = System.currentTimeMillis();
-    ConfigDataSourceStream configDataSourceStream = getConfigDataSourceStrean(sources, startTime, "base configuration");
+    ConfigDataSourceStream configDataSourceStream = getConfigDataSourceStream(sources, startTime, "base configuration");
     if (configDataSourceStream.getSourceInputStream() == null) configurationFetchFailed(sources, startTime);
     loadConfigurationData(configDataSourceStream.getSourceInputStream(), configDataSourceStream.isTrustedSource(),
                           configDataSourceStream.getDescription(), l1BeanRepository, l2sBeanRepository,
@@ -274,7 +274,7 @@ public class StandardXMLFileConfigurationCreator implements ConfigurationCreator
                                                                  boolean reportToConsole, boolean updateTcConfig)
       throws ConfigurationSetupException {
     long startTime = System.currentTimeMillis();
-    ConfigDataSourceStream configDataSourceStream = getConfigDataSourceStrean(sources, startTime, "server topology");
+    ConfigDataSourceStream configDataSourceStream = getConfigDataSourceStream(sources, startTime, "server topology");
     if (configDataSourceStream.getSourceInputStream() == null) configurationFetchFailed(sources, startTime);
     loadServerConfigurationData(configDataSourceStream.getSourceInputStream(),
                                 configDataSourceStream.isTrustedSource(), configDataSourceStream.getDescription(),
@@ -309,44 +309,30 @@ public class StandardXMLFileConfigurationCreator implements ConfigurationCreator
     }
   }
 
-  private ConfigDataSourceStream getConfigDataSourceStrean(ConfigurationSource[] sources, long startTime,
+  private ConfigDataSourceStream getConfigDataSourceStream(ConfigurationSource[] sources, long startTime,
                                                            String description) {
     ConfigurationSource[] remainingSources = new ConfigurationSource[sources.length];
-    ConfigurationSource loadedSource = null;
     System.arraycopy(sources, 0, remainingSources, 0, sources.length);
     long lastLoopStartTime = 0;
     int iteration = 0;
-    InputStream out = null;
-    boolean trustedSource = false;
-    String descrip = null;
 
-    while (iteration == 0 || (System.currentTimeMillis() - startTime < GET_CONFIGURATION_TOTAL_TIMEOUT)) {
+    while (iteration++ == 0 || (System.currentTimeMillis() - startTime < GET_CONFIGURATION_TOTAL_TIMEOUT)) {
       sleepIfNecessaryToAvoidPoundingSources(lastLoopStartTime);
       lastLoopStartTime = System.currentTimeMillis();
 
       for (int i = 0; i < remainingSources.length; ++i) {
-
-        if (remainingSources[i] == null) continue;
-        out = trySource(remainingSources, i);
-        if (out != null) {
-          loadedSource = remainingSources[i];
-          trustedSource = loadedSource.isTrusted();
-          descrip = description + " from " + loadedSource.toString();
-          break;
+        if (remainingSources[i] != null) {
+          InputStream out = trySource(remainingSources, i);
+          if (out != null) {
+            ConfigurationSource loadedSource = remainingSources[i];
+            boolean trustedSource = loadedSource.isTrusted();
+            String descrip = description + " from " + loadedSource;
+            return new ConfigDataSourceStream(out, trustedSource, descrip);
+          }
         }
       }
-
-      if (out != null) break;
-      ++iteration;
-      boolean haveSources = false;
-      for (ConfigurationSource remainingSource : remainingSources)
-        haveSources = haveSources || remainingSource != null;
-      if (!haveSources) {
-        // All sources have failed; bail out.
-        break;
-      }
     }
-    return new ConfigDataSourceStream(out, trustedSource, descrip);
+    return new ConfigDataSourceStream(null, false, null);
   }
 
   private void configurationFetchFailed(ConfigurationSource[] sources, long startTime)

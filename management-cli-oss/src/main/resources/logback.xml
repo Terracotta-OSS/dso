@@ -2,7 +2,7 @@
 <configuration>
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>[%-5p] %X{username} %X{host} %d{dd MMM hh:mm:ss.SSS aa} %t [%c]%n%m%n%n</pattern>
+            <pattern>[%-5p] %X{username} %X{host} %d{dd MMM hh:mm:ss.SSS a} %t [%c]%n%m%n%n</pattern>
         </encoder>
     </appender>
     <root level="INFO">

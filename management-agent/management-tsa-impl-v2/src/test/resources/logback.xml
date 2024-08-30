@@ -12,7 +12,6 @@
     <appender-ref ref="STDOUT"/>
   </root>
 
-  <logger name="bitronix" level="INFO"/>
   <logger name="org.hibernate" level="INFO"/>
   <logger name="javax.management" level="INFO"/>
 </configuration>

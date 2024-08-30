@@ -1,19 +1,19 @@
 <?xml version="1.0"?>
 <!--
-The contents of this file are subject to the Terracotta Public License Version
-2.0 (the "License"); You may not use this file except in compliance with the
-License. You may obtain a copy of the License at 
+   Copyright Terracotta, Inc.
+   Copyright Super iPaaS Integration LLC, an IBM Company 2024
 
-     http://terracotta.org/legal/terracotta-public-license.
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
 
-Software distributed under the License is distributed on an "AS IS" basis,
-WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
-the specific language governing rights and limitations under the License.
+       http://www.apache.org/licenses/LICENSE-2.0
 
-The Covered Software is Terracotta Platform.
-
-The Initial Developer of the Covered Software is 
-     Terracotta, Inc., a Software AG company
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
@@ -21,7 +21,7 @@ The Initial Developer of the Covered Software is
 	<parent>
 		<groupId>org.terracotta</groupId>
 		<artifactId>build-parent</artifactId>
-		<version>4.3.10-SNAPSHOT</version>
+		<version>4.4.1-SNAPSHOT</version>
 		<relativePath>../build-parent</relativePath>
 	</parent>
 
@@ -32,7 +32,6 @@ The Initial Developer of the Covered Software is
 
 	<properties>
 		<archive>${project.build.directory}/${project.artifactId}-${project.version}.jar</archive>
-		<groovy-maven-plugin.version>2.1.1</groovy-maven-plugin.version>
 		<toolkitContentFilename>toolkit-content.txt</toolkitContentFilename>
 		<skipToolkitPackaging>true</skipToolkitPackaging>
 		<packagingType>jar</packagingType>
@@ -119,7 +118,6 @@ The Initial Developer of the Covered Software is
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-dependency-plugin</artifactId>
-                        <version>3.1.1</version>
 						<executions>
 							<execution>
 								<id>list-dependencies</id>
@@ -229,7 +227,6 @@ The Initial Developer of the Covered Software is
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-dependency-plugin</artifactId>
-						<version>3.1.1</version>
 						<executions>
 							<execution>
 								<id>copy-javadoc</id>
@@ -256,7 +253,6 @@ The Initial Developer of the Covered Software is
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>build-helper-maven-plugin</artifactId>
-						<version>1.7</version>
 						<executions>
 							<execution>
 								<id>attach-javadoc</id>
@@ -302,12 +298,12 @@ The Initial Developer of the Covered Software is
 									<artifacts>
 										<param>org.terracotta:terracotta-l1:${project.version}</param>
 									</artifacts>
-                  <createShadeRecord>true</createShadeRecord>
-                  <!-- we need to exclude these even though they're not supposed to be part of terracotta-l1
-                       dependency-reduced-pom. However, terracotta-l1 is built in the same session of toolkit-runtime 
-                       (ie. in the same reactor list)
-                       so the dependency-reduced-pom is not taken effect, the original pom is -->
-                  <excludeGroupIds>org.terracotta.internal</excludeGroupIds>
+									<createShadeRecord>true</createShadeRecord>
+									<!-- we need to exclude these even though they're not supposed to be part of terracotta-l1
+                                         dependency-reduced-pom. However, terracotta-l1 is built in the same session of toolkit-runtime
+                                         (ie. in the same reactor list)
+                                         so the dependency-reduced-pom is not taken effect, the original pom is -->
+									<excludeGroupIds>org.terracotta.internal</excludeGroupIds>
 									<outputDir>${project.build.outputDirectory}/L1</outputDir>
 								</configuration>
 							</execution>
@@ -321,7 +317,7 @@ The Initial Developer of the Covered Software is
 									<artifacts>
 										<param>org.terracotta.internal:terracotta-toolkit-impl:${project.version}</param>
 									</artifacts>
-                  <createShadeRecord>true</createShadeRecord>
+									<createShadeRecord>true</createShadeRecord>
 									<resolveTransitively>false</resolveTransitively>
 									<outputDir>${project.build.outputDirectory}/TIMs</outputDir>
 								</configuration>
@@ -336,7 +332,7 @@ The Initial Developer of the Covered Software is
 									<artifacts>
 										<param>net.sf.ehcache:ehcache:${ehcache.version}</param>
 									</artifacts>
-                  <createShadeRecord>true</createShadeRecord>
+									<createShadeRecord>true</createShadeRecord>
 									<outputDir>${project.build.outputDirectory}/ehcache</outputDir>
 								</configuration>
 							</execution>
@@ -359,16 +355,15 @@ The Initial Developer of the Covered Software is
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-shade-plugin</artifactId>
-            <version>2.3</version>
-            <dependencies>
-              <dependency>
-                <groupId>org.terracotta.maven.plugins</groupId>
-                <artifactId>terracotta-shader</artifactId>
-                <version>${tc-shader.version}</version>
-              </dependency>
-            </dependencies>            
-            <configuration>
-              <shaderHint>record-shader</shaderHint>
+						<dependencies>
+							<dependency>
+								<groupId>org.terracotta.maven.plugins</groupId>
+								<artifactId>terracotta-shader</artifactId>
+								<version>${tc-shader.version}</version>
+							</dependency>
+						</dependencies>
+						<configuration>
+							<shaderHint>record-shader</shaderHint>
 							<useBaseVersion>true</useBaseVersion>
 							<createSourcesJar>true</createSourcesJar>
 							<artifactSet>
@@ -414,13 +409,13 @@ The Initial Developer of the Covered Software is
 								<configuration>
 									<source>
 										def jarFile = new File(project.build.directory,
-										"${project.artifactId}-${project.version}.jar")
+												"${project.artifactId}-${project.version}.jar")
 										ant.jar(destfile: jarFile, update: "true") {
-										zipfileset(file:
-										new File(project.build.directory,
-										"dependency-reduced-pom.xml"),
-										fullpath:
-										"META-INF/maven/${project.groupId}/${project.artifactId}/pom.xml")
+											zipfileset(file:
+													new File(project.build.directory,
+															"dependency-reduced-pom.xml"),
+													fullpath:
+															"META-INF/maven/${project.groupId}/${project.artifactId}/pom.xml")
 										}
 									</source>
 								</configuration>
@@ -430,7 +425,6 @@ The Initial Developer of the Covered Software is
 					<plugin>
 						<groupId>org.apache.felix</groupId>
 						<artifactId>maven-bundle-plugin</artifactId>
-						<version>4.2.1</version>
 						<extensions>true</extensions>
 						<configuration>
 							<manifestLocation>${project.build.directory}</manifestLocation>
@@ -443,10 +437,8 @@ The Initial Developer of the Covered Software is
 									net.sf.ehcache.pool.impl;resolution:=optional,
 									net.sf.ehcache.store;resolution:=optional,
 									net.sf.ehcache.event;resolution:=optional,
-                  net.sf.ehcache.constructs.classloader;resolution:=optional,
-                  net.sf.ehcache.util;resolution:=optional,
-									org.slf4j;resolution:=optional,
-									org.slf4j.impl;resolution:=optional,
+									net.sf.ehcache.constructs.classloader;resolution:=optional,
+									net.sf.ehcache.util;resolution:=optional,
 									javax.naming,
 									javax.management,
 									javax.transaction.xa,
@@ -458,11 +450,13 @@ The Initial Developer of the Covered Software is
 									javax.xml.namespace,
 									javax.management.remote,
 									javax.management.loading,
-									javax.net.ssl,*</Import-Package>
+									javax.net.ssl,
+									*
+								</Import-Package>
 								<Export-Package>org.terracotta.toolkit.*;-split-package:=merge-last</Export-Package>
-								<Bundle-RequiredExecutionEnvironment>JavaSE-1.8</Bundle-RequiredExecutionEnvironment>
+								<Bundle-RequiredExecutionEnvironment>JavaSE-11</Bundle-RequiredExecutionEnvironment>
 								<Bundle-ClassPath>., {maven-dependencies}</Bundle-ClassPath>
-								<Include-Resource> {maven-resources}, {maven-dependencies},
+								<Include-Resource>{maven-resources}, {maven-dependencies},
 									target/classes
 								</Include-Resource>
 							</instructions>

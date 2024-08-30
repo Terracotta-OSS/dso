@@ -1,18 +1,18 @@
-/* 
- * The contents of this file are subject to the Terracotta Public License Version
- * 2.0 (the "License"); You may not use this file except in compliance with the
- * License. You may obtain a copy of the License at 
+/*
+ * Copyright Terracotta, Inc.
+ * Copyright Super iPaaS Integration LLC, an IBM Company 2024
  *
- *      http://terracotta.org/legal/terracotta-public-license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * The Covered Software is Terracotta Platform.
- *
- * The Initial Developer of the Covered Software is 
- *      Terracotta, Inc., a Software AG company
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.tc.objectserver.impl;
 
@@ -22,8 +22,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import com.tc.object.ObjectID;
@@ -34,9 +32,12 @@ import com.tc.objectserver.l1.impl.ClientObjectReferenceSet;
 
 import java.util.Collections;
 
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.intThat;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.intThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  *
@@ -50,9 +51,9 @@ public class AbstractEvictionTriggerTest {
 
   public EvictableMap getEvictableMap() {
     if (evm == null) {
-      evm = Mockito.mock(EvictableMap.class);
-      Mockito.when(evm.getMaxTotalCount()).thenReturn(-1);
-      Mockito.when(evm.getSize()).thenReturn(100);
+      evm = mock(EvictableMap.class);
+      when(evm.getMaxTotalCount()).thenReturn(-1);
+      when(evm.getSize()).thenReturn(100);
     }
     return evm;
   }
@@ -66,7 +67,7 @@ public class AbstractEvictionTriggerTest {
 
   public ClientObjectReferenceSet getClientSet() {
     if (clientSet == null) {
-      clientSet = Mockito.mock(ClientObjectReferenceSet.class);
+      clientSet = mock(ClientObjectReferenceSet.class);
     }
     return clientSet;
   }
@@ -98,13 +99,13 @@ public class AbstractEvictionTriggerTest {
 
   public void checkSizeCycle(int size) {
     EvictableMap map = getEvictableMap();
-    Mockito.when(map.getSize()).thenReturn(size);
+    when(map.getSize()).thenReturn(size);
     checkCycle(Integer.MAX_VALUE);
   }
 
   public void checkMaxCycle(int max) {
     EvictableMap map = getEvictableMap();
-    Mockito.when(map.getMaxTotalCount()).thenReturn(max);
+    when(map.getMaxTotalCount()).thenReturn(max);
     checkCycle(max);
   }
 
@@ -116,13 +117,13 @@ public class AbstractEvictionTriggerTest {
 
     boolean startEviction = et.startEviction(map);
     if (startEviction) {
-      Mockito.verify(map).startEviction();
+      verify(map).startEviction();
       found = et.collectEvictionCandidates(max, "MOCK", map, cs);
       et.completeEviction(map);
     }
     
     if (found != null) {
-      Mockito.verify(map).getRandomSamples(intThat(new ArgumentMatcher<Integer>() {
+      verify(map).getRandomSamples(intThat(new ArgumentMatcher<Integer>() {
         int maxLocal = et.boundsCheckSampleSize(Integer.MAX_VALUE);
 
         @Override
@@ -130,7 +131,7 @@ public class AbstractEvictionTriggerTest {
           return item <= maxLocal && item >= 0;
         }
       }), eq(cs), SamplingType.FOR_EVICTION);
-      Mockito.verify(map).evictionCompleted();
+      verify(map).evictionCompleted();
     }
   }
 
@@ -173,8 +174,8 @@ public class AbstractEvictionTriggerTest {
   public void setUp() {
     evm = getEvictableMap();
     trigger = getTrigger();
-    Mockito.when(evm.startEviction()).thenReturn(Boolean.TRUE);
-    Mockito.when(evm.getRandomSamples(anyInt(), eq(clientSet), eq(SamplingType.FOR_EVICTION)))
+    when(evm.startEviction()).thenReturn(Boolean.TRUE);
+    when(evm.getRandomSamples(anyInt(), eq(clientSet), eq(SamplingType.FOR_EVICTION)))
         .thenReturn(Collections.<Object, EvictableEntry> emptyMap());
   }
 
@@ -182,9 +183,4 @@ public class AbstractEvictionTriggerTest {
   public void tearDown() {
     //
   }
-  // TODO add test methods here.
-  // The methods must be annotated with annotation @Test. For example:
-    //
-    // @Test
-  // public void hello() {}
 }

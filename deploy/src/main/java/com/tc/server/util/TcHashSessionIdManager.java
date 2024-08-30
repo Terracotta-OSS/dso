@@ -1,18 +1,18 @@
-/* 
- * The contents of this file are subject to the Terracotta Public License Version
- * 2.0 (the "License"); You may not use this file except in compliance with the
- * License. You may obtain a copy of the License at 
+/*
+ * Copyright Terracotta, Inc.
+ * Copyright Super iPaaS Integration LLC, an IBM Company 2024
  *
- *      http://terracotta.org/legal/terracotta-public-license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * The Covered Software is Terracotta Platform.
- *
- * The Initial Developer of the Covered Software is 
- *      Terracotta, Inc., a Software AG company
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.tc.server.util;
 
@@ -23,6 +23,7 @@ import org.eclipse.jetty.server.session.HouseKeeper;
 import org.eclipse.jetty.server.session.SessionHandler;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.EventListener;
 import java.util.Set;
 
 /**
@@ -89,6 +90,18 @@ public class TcHashSessionIdManager implements SessionIdManager {
   public boolean isFailed() {
     if (delegate == null) { return false; }
     return getDelegate().isFailed();
+  }
+
+  @Override
+  public boolean addEventListener(EventListener eventListener) {
+    if (delegate == null) { return false; }
+    return getDelegate().addEventListener(eventListener);
+  }
+
+  @Override
+  public boolean removeEventListener(EventListener eventListener) {
+    if (delegate == null) { return false; }
+    return getDelegate().removeEventListener(eventListener);
   }
 
   @Override
@@ -166,15 +179,5 @@ public class TcHashSessionIdManager implements SessionIdManager {
 
       return delegate;
     }
-  }
-
-  @Override
-  public void addLifeCycleListener(Listener arg0) {
-    /**/
-  }
-
-  @Override
-  public void removeLifeCycleListener(Listener arg0) {
-    /**/
   }
 }

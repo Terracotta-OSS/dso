@@ -1,26 +1,26 @@
-/* 
- * The contents of this file are subject to the Terracotta Public License Version
- * 2.0 (the "License"); You may not use this file except in compliance with the
- * License. You may obtain a copy of the License at 
+/*
+ * Copyright Terracotta, Inc.
+ * Copyright Super iPaaS Integration LLC, an IBM Company 2024
  *
- *      http://terracotta.org/legal/terracotta-public-license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * The Covered Software is Terracotta Platform.
- *
- * The Initial Developer of the Covered Software is 
- *      Terracotta, Inc., a Software AG company
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.tc.object.handler;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyCollection;
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.anyMap;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyCollection;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.anyMap;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -41,7 +41,6 @@ import com.tc.object.context.ServerEventDeliveryContext;
 import com.tc.object.dna.api.DNA;
 import com.tc.object.gtx.ClientGlobalTransactionManager;
 import com.tc.object.gtx.GlobalTransactionID;
-import com.tc.object.locks.LockID;
 import com.tc.object.msg.AcknowledgeTransactionMessageFactory;
 import com.tc.object.msg.BroadcastTransactionMessage;
 import com.tc.object.msg.BroadcastTransactionMessageImpl;
@@ -92,8 +91,7 @@ public class ReceiveTransactionHandlerTest {
     ClientConfigurationContext context = mock(ClientConfigurationContext.class);
     ClientTransactionManager clientTransactionManager = mock(ClientTransactionManager.class);
     doThrow(new TCNotRunningException()).when(clientTransactionManager).apply(any(TxnType.class),
-                                                                              anyListOf(LockID.class), anyCollection(),
-                                                                              anyMap());
+      anyList(), anyCollection(), anyMap());
     when(context.getTransactionManager()).thenReturn(clientTransactionManager);
 
     ClientGlobalTransactionManager clientGlobalTransactionManager = mock(ClientGlobalTransactionManager.class);

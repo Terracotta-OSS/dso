@@ -1,18 +1,18 @@
-/* 
- * The contents of this file are subject to the Terracotta Public License Version
- * 2.0 (the "License"); You may not use this file except in compliance with the
- * License. You may obtain a copy of the License at 
+/*
+ * Copyright Terracotta, Inc.
+ * Copyright Super iPaaS Integration LLC, an IBM Company 2024
  *
- *      http://terracotta.org/legal/terracotta-public-license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * The Covered Software is Terracotta Platform.
- *
- * The Initial Developer of the Covered Software is 
- *      Terracotta, Inc., a Software AG company
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.tc.objectserver.impl;
 
@@ -22,7 +22,6 @@ import com.tc.object.ObjectID;
 import com.tc.object.dna.api.DNA;
 import com.tc.objectserver.api.EvictableEntry;
 import com.tc.objectserver.api.EvictableMap;
-import com.tc.objectserver.api.ObjectManager;
 import com.tc.objectserver.context.ServerMapEvictionContext;
 import com.tc.objectserver.l1.api.ClientStateManager;
 import com.tc.objectserver.l1.api.ObjectReferenceAddListener;
@@ -67,7 +66,6 @@ public class PeriodicEvictionTrigger extends AbstractEvictionTrigger {
     private int ttl = 0;
     private boolean completed = false;
     private volatile boolean stop = false;
-    private final ObjectManager  mgr;
     private final ObjectIDSet exclusionList;
     private final ObjectIDSet passList = new BitSetObjectIDSet();
     
@@ -137,12 +135,12 @@ public class PeriodicEvictionTrigger extends AbstractEvictionTrigger {
         }
     });
     
-    public PeriodicEvictionTrigger(ObjectManager mgr, ObjectID oid) {
-        this(mgr,oid,new BitSetObjectIDSet(), true);
+    public PeriodicEvictionTrigger(ObjectID oid) {
+        this(oid,new BitSetObjectIDSet(), true);
     }
     
     public PeriodicEvictionTrigger duplicate() {
-        PeriodicEvictionTrigger nt = new PeriodicEvictionTrigger(mgr,getId());
+        PeriodicEvictionTrigger nt = new PeriodicEvictionTrigger(getId());
         nt.sampleAmount = sampleAmount - 5;
         if ( nt.sampleAmount <= 0 ) {
             nt.sampleAmount = 1;
@@ -150,10 +148,9 @@ public class PeriodicEvictionTrigger extends AbstractEvictionTrigger {
         return nt;
     }
     
-    public PeriodicEvictionTrigger(ObjectManager mgr, ObjectID oid, ObjectIDSet exclude, boolean runAlways) {
+    public PeriodicEvictionTrigger(ObjectID oid, ObjectIDSet exclude, boolean runAlways) {
         super(oid);
         this.runAlways = runAlways;
-        this.mgr = mgr;
         this.exclusionList = exclude;
     }
     
@@ -164,10 +161,6 @@ public class PeriodicEvictionTrigger extends AbstractEvictionTrigger {
     @Override
     public int getCount() {
         return filtered;
-    }
-    
-    protected ObjectManager getObjectManager() {
-        return mgr;
     }
     
     public boolean isExpirationOnly() {

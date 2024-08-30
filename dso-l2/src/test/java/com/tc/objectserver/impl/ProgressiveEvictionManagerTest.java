@@ -1,18 +1,18 @@
-/* 
- * The contents of this file are subject to the Terracotta Public License Version
- * 2.0 (the "License"); You may not use this file except in compliance with the
- * License. You may obtain a copy of the License at 
+/*
+ * Copyright Terracotta, Inc.
+ * Copyright Super iPaaS Integration LLC, an IBM Company 2024
  *
- *      http://terracotta.org/legal/terracotta-public-license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * The Covered Software is Terracotta Platform.
- *
- * The Initial Developer of the Covered Software is 
- *      Terracotta, Inc., a Software AG company
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.tc.objectserver.impl;
 
@@ -48,9 +48,16 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.Matchers;
-import static org.mockito.Mockito.*;
 import org.terracotta.corestorage.monitoring.MonitoredResource;
+
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 /**
@@ -91,10 +98,10 @@ public class ProgressiveEvictionManagerTest {
     when(map.getCacheName()).thenReturn("TESTMAP");
     when(map.startEviction()).thenReturn(false);
     when(map.getClassName()).thenReturn("TESTMAPCLASS");
-    when(objectMgr.getObjectByIDReadOnly(Matchers.<ObjectID>any())).thenReturn(mo);
+    when(objectMgr.getObjectByIDReadOnly(any(ObjectID.class))).thenReturn(mo);
     
     CounterManager counter = mock(CounterManager.class);
-    when(counter.createCounter(Matchers.<CounterConfig>any())).thenReturn(mock(SampledRateCounter.class));
+    when(counter.createCounter(any(CounterConfig.class))).thenReturn(mock(SampledRateCounter.class));
     mgr = new ProgressiveEvictionManager(objectMgr, Collections.singletonList(mock(MonitoredResource.class)), store, 
             mock(ClientObjectReferenceSet.class), mock(ServerTransactionFactory.class), new TCThreadGroup(mock(ThrowableHandler.class)), 
             mock(ResourceManager.class), counter, mock(EvictionTransactionPersistor.class), false, false);
@@ -102,7 +109,7 @@ public class ProgressiveEvictionManagerTest {
     ServerConfigurationContext cxt = mock(ServerConfigurationContext.class);
     Stage stage = mock(Stage.class);
     when(stage.getSink()).thenReturn(mock(Sink.class));
-    when(cxt.getStage(Matchers.anyString())).thenReturn(stage);
+    when(cxt.getStage(anyString())).thenReturn(stage);
     when(cxt.getTransactionBatchManager()).thenReturn(mock(TransactionBatchManager.class));
     when(cxt.getTransactionManager()).thenReturn(mock(ServerTransactionManager.class));
     L2Coordinator l2 = mock(L2Coordinator.class);
@@ -131,17 +138,17 @@ public class ProgressiveEvictionManagerTest {
     when(map.getSize()).thenReturn(1000);
     when(map.getMaxTotalCount()).thenReturn(500);
     Map<Object,EvictableEntry> collectionMap = mock(Map.class);
-    when(map.getRandomSamples(Matchers.anyInt(),Matchers.<ClientObjectReferenceSet>any(),Matchers.<SamplingType>any())).thenReturn(mock(Map.class));
+    when(map.getRandomSamples(anyInt(), any(ClientObjectReferenceSet.class), any(SamplingType.class))).thenReturn(mock(Map.class));
     Assert.assertTrue(mgr.scheduleCapacityEviction(new ObjectID(1)));
     mgr.shutdownEvictor();
 //    verify(map).evictionCompleted();
     verify(map,atLeastOnce()).getMaxTotalCount();
     verify(map,atLeastOnce()).getSize();
-    verify(map).getRandomSamples(Matchers.eq(500), Matchers.<ClientObjectReferenceSet>any(), Matchers.<SamplingType>any());
+    verify(map).getRandomSamples(eq(500), any(ClientObjectReferenceSet.class), any(SamplingType.class));
     verify(map).isEvictionEnabled();
     verify(map).startEviction();
-    verify(objectMgr).releaseReadOnly(Matchers.<ManagedObject>any());
-    verify(objectMgr).getObjectByIDReadOnly(Matchers.<ObjectID>any());    
+    verify(objectMgr).releaseReadOnly(any(ManagedObject.class));
+    verify(objectMgr).getObjectByIDReadOnly(any(ObjectID.class));
   }
   
   @Test
@@ -158,6 +165,6 @@ public class ProgressiveEvictionManagerTest {
     mgr.shutdownEvictor();
     Assert.assertTrue(mgr.getCurrentlyEvicting().isEmpty());
     verify(objectMgr).getObjectByIDReadOnly(new ObjectID(1));
-    verify(objectMgr).releaseReadOnly(Matchers.<ManagedObject>any());
+    verify(objectMgr).releaseReadOnly(any(ManagedObject.class));
   }
 }

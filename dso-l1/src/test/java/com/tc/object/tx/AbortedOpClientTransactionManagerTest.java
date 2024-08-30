@@ -1,23 +1,20 @@
-/* 
- * The contents of this file are subject to the Terracotta Public License Version
- * 2.0 (the "License"); You may not use this file except in compliance with the
- * License. You may obtain a copy of the License at 
+/*
+ * Copyright Terracotta, Inc.
+ * Copyright Super iPaaS Integration LLC, an IBM Company 2024
  *
- *      http://terracotta.org/legal/terracotta-public-license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * The Covered Software is Terracotta Platform.
- *
- * The Initial Developer of the Covered Software is 
- *      Terracotta, Inc., a Software AG company
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.tc.object.tx;
-
-import org.mockito.Matchers;
-import org.mockito.Mockito;
 
 import com.tc.abortable.AbortableOperationManager;
 import com.tc.abortable.AbortableOperationManagerImpl;
@@ -25,13 +22,10 @@ import com.tc.abortable.AbortedOperationException;
 import com.tc.net.protocol.tcm.TestChannelIDProvider;
 import com.tc.object.ClientIDProviderImpl;
 import com.tc.object.LogicalOperation;
-import com.tc.object.TCObject;
 import com.tc.object.TestClientObjectManager;
-import com.tc.object.dna.api.LogicalChangeID;
 import com.tc.object.locks.LockID;
 import com.tc.object.locks.LockLevel;
 import com.tc.object.locks.MockClientLockManager;
-import com.tc.object.locks.Notify;
 import com.tc.object.locks.StringLockID;
 import com.tc.stats.counter.sampled.SampledCounter;
 
@@ -41,6 +35,13 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;
+
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class AbortedOpClientTransactionManagerTest extends TestCase {
   TestClientTransactionFactory clientTxnFactory;
@@ -97,18 +98,13 @@ public class AbortedOpClientTransactionManagerTest extends TestCase {
     // change 2
     clientTxnFactory.clientTransactions.get(1).addNotify(null);
 
-    Mockito.verify(clientTxnFactory.clientTransactions.get(0), Mockito.times(1))
-        .logicalInvoke((TCObject) Matchers.any(), Matchers.any(LogicalOperation.class), (Object[]) Matchers.any(),
-                       (LogicalChangeID) Matchers.any());
-    Mockito.verify(clientTxnFactory.clientTransactions.get(1), Mockito.never())
-        .logicalInvoke((TCObject) Matchers.any(), Matchers.any(LogicalOperation.class), (Object[]) Matchers.any(),
-                       (LogicalChangeID) Matchers.any());
-    
-    Mockito.verify(clientTxnFactory.clientTransactions.get(0), Mockito.never())
-        .addNotify((Notify) Matchers
-                                                                                               .anyObject());
-    Mockito.verify(clientTxnFactory.clientTransactions.get(1), Mockito.times(1)).addNotify((Notify) Matchers
-                                                                                               .anyObject());
+    verify(clientTxnFactory.clientTransactions.get(0), times(1))
+      .logicalInvoke(any(), any(LogicalOperation.class), any(), any());
+    verify(clientTxnFactory.clientTransactions.get(1), never())
+      .logicalInvoke(any(), any(LogicalOperation.class), any(), any());
+
+    verify(clientTxnFactory.clientTransactions.get(0), never()).addNotify(any());
+    verify(clientTxnFactory.clientTransactions.get(1), times(1)).addNotify(any());
     // change2
     clientTxnMgr.commit(new StringLockID("test1"), LockLevel.WRITE, false, null);
 
@@ -125,8 +121,8 @@ public class AbortedOpClientTransactionManagerTest extends TestCase {
 
     @Override
     public ClientTransaction newInstance(int session) {
-      ClientTransaction clientTransaction = Mockito.mock(ClientTransaction.class);
-      Mockito.when(clientTransaction.hasChangesOrNotifies()).thenReturn(true);
+      ClientTransaction clientTransaction = mock(ClientTransaction.class);
+      when(clientTransaction.hasChangesOrNotifies()).thenReturn(true);
 
       clientTransactions.add(clientTransaction);
       return clientTransaction;

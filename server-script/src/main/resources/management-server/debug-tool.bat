@@ -1,21 +1,21 @@
 @echo off
 
-REM 
-REM The contents of this file are subject to the Terracotta Public License Version
-REM 2.0 (the "License"); You may not use this file except in compliance with the
-REM License. You may obtain a copy of the License at 
-REM 
-REM      http://terracotta.org/legal/terracotta-public-license.
-REM 
-REM Software distributed under the License is distributed on an "AS IS" basis,
-REM WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
-REM the specific language governing rights and limitations under the License.
-REM 
-REM The Covered Software is Terracotta Platform.
-REM 
-REM The Initial Developer of the Covered Software is 
-REM     Terracotta, Inc., a Software AG company
-REM
+@REM
+@REM Copyright Terracotta, Inc.
+@REM Copyright Super iPaaS Integration LLC, an IBM Company 2024
+@REM
+@REM Licensed under the Apache License, Version 2.0 (the "License");
+@REM you may not use this file except in compliance with the License.
+@REM You may obtain a copy of the License at
+@REM
+@REM     http://www.apache.org/licenses/LICENSE-2.0
+@REM
+@REM Unless required by applicable law or agreed to in writing, software
+@REM distributed under the License is distributed on an "AS IS" BASIS,
+@REM WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+@REM See the License for the specific language governing permissions and
+@REM limitations under the License.
+@REM
 
 SETLOCAL ENABLEDELAYEDEXPANSION
 
@@ -62,16 +62,16 @@ ${@#ee}  EXIT /B
 ${@#ee} )
 
 IF NOT '%DO_ZIP%'=='-z' (
-${@#oss}  CALL %root%rest-client.bat %IGNORE_SSL_CERT% -g "%MGM_SERVER_LOCATION%/tc-management-api/v2/agents/diagnostics/%THREAD_DUMP%"  "$.[*].dump"
-${@#ee}  CALL %root%rest-client.bat %IGNORE_SSL_CERT% -g "%MGM_SERVER_LOCATION%/tmc/api/agents;ids=%AGENT_ID%/diagnostics/threadDump" "" %USERNAME% %PASSWORD% "$.[*].dump"
+${@#oss}  CALL %root%rest-client.bat %IGNORE_SSL_CERT% -g "%MGM_SERVER_LOCATION%/tc-management-api/v2/agents/diagnostics/%THREAD_DUMP%"  "$.entities[*].dump"
+${@#ee}  CALL %root%rest-client.bat %IGNORE_SSL_CERT% -g "%MGM_SERVER_LOCATION%/tmc/api/v2/agents;ids=%AGENT_ID%/diagnostics/threadDump" "" %USERNAME% %PASSWORD% "$.entities[*].dump"
 ) ELSE (
-${@#ee} CALL %root%rest-client.bat %IGNORE_SSL_CERT% -e -f -g %MGM_SERVER_LOCATION%/tmc/api/agents "" %USERNAME% %PASSWORD% "$.[?(@.agencyOf == 'TSA')].[?(@.agentId == '%AGENT_ID%')].agentId" > NUL 2>&1
+${@#ee} CALL %root%rest-client.bat %IGNORE_SSL_CERT% -e -f -g %MGM_SERVER_LOCATION%/tmc/api/v2/agents "" %USERNAME% %PASSWORD% "$.entities[?(@.agencyOf == 'TSA')].[?(@.agentId == '%AGENT_ID%')].agentId" > NUL 2>&1
 ${@#ee}  IF ERRORLEVEL 1 (
 ${@#ee}    echo Incorrect agent ID, available IDs
 ${@#ee}    CALL %root%list-agent-ids.bat %IGNORE_SSL_CERT% -u %USERNAME% -p %PASSWORD% -l %MGM_SERVER_LOCATION%
 ${@#ee}    EXIT /B
 ${@#ee}  )
-${@#ee}  CALL %root%rest-client.bat %IGNORE_SSL_CERT% -g "%MGM_SERVER_LOCATION%/tmc/api/agents;ids=%AGENT_ID%/diagnostics/threadDumpArchive" "" %USERNAME% %PASSWORD% > %AGENT_ID%-ThreadDump.zip
+${@#ee}  CALL %root%rest-client.bat %IGNORE_SSL_CERT% -g "%MGM_SERVER_LOCATION%/tmc/api/v2/agents;ids=%AGENT_ID%/diagnostics/threadDumpArchive" "" %USERNAME% %PASSWORD% > %AGENT_ID%-ThreadDump.zip
 ${@#oss}  CALL %root%rest-client.bat %IGNORE_SSL_CERT% -g "%MGM_SERVER_LOCATION%/tc-management-api/v2/agents/diagnostics/%THREAD_DUMP_ARCHIVE%"  > ThreadDump.zip
 )
 

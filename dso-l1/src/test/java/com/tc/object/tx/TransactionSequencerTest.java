@@ -1,22 +1,21 @@
-/* 
- * The contents of this file are subject to the Terracotta Public License Version
- * 2.0 (the "License"); You may not use this file except in compliance with the
- * License. You may obtain a copy of the License at 
+/*
+ * Copyright Terracotta, Inc.
+ * Copyright Super iPaaS Integration LLC, an IBM Company 2024
  *
- *      http://terracotta.org/legal/terracotta-public-license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * The Covered Software is Terracotta Platform.
- *
- * The Initial Developer of the Covered Software is 
- *      Terracotta, Inc., a Software AG company
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.tc.object.tx;
 
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import com.tc.abortable.AbortableOperationManager;
@@ -44,6 +43,9 @@ import junit.framework.TestCase;
 public class TransactionSequencerTest extends TestCase {
 
   public TransactionSequencer txnSequencer;
+  private static final TransactionBuffer mockTxnBuffer = createTransactionBuffer();
+  private static final FoldedInfo foldedInfoWithMockTxnBuffer = new FoldedInfo(mockTxnBuffer);
+
   public boolean  folding = true;
   private static final long   TIME_TO_RUN         = 1 * 60 * 1000;
   private static final int    MAX_PENDING_BATCHES = 5;
@@ -61,7 +63,15 @@ public class TransactionSequencerTest extends TestCase {
                                                  new NullAbortableOperationManager(),
  mockedRTMI);
   }
-  
+
+  private static TransactionBuffer createTransactionBuffer() {
+    TransactionBuffer buffer = Mockito.mock(TransactionBuffer.class);
+    Mockito.when(buffer.getTxnCount()).thenReturn(1);
+    Mockito.when(buffer.getFoldedTransactionID()).thenReturn(Mockito.mock(TransactionID.class));
+    Mockito.doReturn(640000).when(buffer).write(Mockito.any(ClientTransaction.class));
+    return buffer;
+  }
+
   // checkout DEV-5872 to know why this test was written
   public void testDeadLockWithFolding() throws InterruptedException {
       folding = true;
@@ -160,8 +170,12 @@ public class TransactionSequencerTest extends TestCase {
     public void run() {
       System.out.println("producer started");
       long startTime = System.currentTimeMillis();
+      int i = 0;
       while (System.currentTimeMillis() - startTime < TIME_TO_RUN) {
           this.txnSequencer.addTransaction(new TestClientTransaction());
+          if ((i++ % 100) == 0) {
+            ThreadUtil.reallySleep(10);
+          }
       }
       System.out.println("producer finished");
     }
@@ -234,17 +248,9 @@ public class TransactionSequencerTest extends TestCase {
       txn.setSequenceID(new SequenceID(sequenceGenerator.getNextSequence()));
       txn.setTransactionID(transactionIDGenerator.nextTransactionID());
       transactions += 1;
-      return new FoldedInfo(createTransactionBuffer());
+      return foldedInfoWithMockTxnBuffer;
     }
-    
-    private TransactionBuffer createTransactionBuffer() {
-      TransactionBuffer buffer = Mockito.mock(TransactionBuffer.class);
-      Mockito.when(buffer.getTxnCount()).thenReturn(1);
-      Mockito.when(buffer.getFoldedTransactionID()).thenReturn(Mockito.mock(TransactionID.class));
-      Mockito.doReturn(640000).when(buffer).write(Matchers.any(ClientTransaction.class));
-      return buffer;
-   }
-    
+
     @Override
     public synchronized TransactionBuffer addSimpleTransaction(ClientTransaction txn) {
       transactions += 1;

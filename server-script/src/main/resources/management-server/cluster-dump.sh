@@ -35,7 +35,7 @@ ${@#lee}  exec `dirname $0`/list-agent-ids.sh ${ignoreSslCert} -u "${username}" 
 ${@#lee} fi
 
 ${@#lee} echo "starting cluster dump on ${agentId} ..."
-${@#lee} ${rest_client} ${ignoreSslCert} -p "${mgm_server_location}/tmc/api/agents;ids=${agentId}/diagnostics/dumpClusterState" "" "${username}" "${password}"
+${@#lee} ${rest_client} ${ignoreSslCert} -p "${mgm_server_location}/tmc/api/v2/agents;ids=${agentId}/diagnostics/dumpClusterState" "" "${username}" "${password}"
 
 ${@#loss} echo "starting cluster dump on ${mgm_server_location} ..."
 ${@#loss} ${rest_client} ${ignoreSslCert} -p "${mgm_server_location}/tc-management-api/v2/agents/diagnostics/dumpClusterState"

@@ -1,18 +1,18 @@
-/* 
- * The contents of this file are subject to the Terracotta Public License Version
- * 2.0 (the "License"); You may not use this file except in compliance with the
- * License. You may obtain a copy of the License at 
+/*
+ * Copyright Terracotta, Inc.
+ * Copyright Super iPaaS Integration LLC, an IBM Company 2024
  *
- *      http://terracotta.org/legal/terracotta-public-license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * The Covered Software is Terracotta Platform.
- *
- * The Initial Developer of the Covered Software is 
- *      Terracotta, Inc., a Software AG company
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.tc.logging;
 
@@ -72,12 +72,6 @@ public class TCLogging {
 
   private static final int          MAX_BUFFERED_LOG_MESSAGES          = 10 * 1000;
 
-  private static final String       TERRACOTTA_L1_LOG_FILE_NAME        = "terracotta-client.log";
-  private static final String       TERRACOTTA_L2_LOG_FILE_NAME        = "terracotta-server.log";
-  private static final String       TERRACOTTA_GENERIC_LOG_FILE_NAME   = "terracotta-generic.log";
-
-  private static final String       LOCK_FILE_NAME                     = ".terracotta-logging.lock";
-
   private static final String[]     INTERNAL_LOGGER_NAMESPACES         = new String[] { "com.tc", "com.terracotta",
       "com.terracottatech", "org.terracotta", "tc.operator"           };
 
@@ -91,6 +85,7 @@ public class TCLogging {
 
   private static final String       LOGGING_PROPERTIES_SECTION         = "logging";
   private static final String       MAX_LOG_FILE_SIZE_PROPERTY         = "maxLogFileSize";
+  private static final int          LOG_COLLISION_LIMIT                = 100;
   private static final int          DEFAULT_MAX_LOG_FILE_SIZE          = 512;
   private static final String       MAX_BACKUPS_PROPERTY               = "maxBackups";
   private static final int          DEFAULT_MAX_BACKUPS                = 20;
@@ -329,11 +324,7 @@ public class TCLogging {
     }
   }
 
-  public static final int PROCESS_TYPE_GENERIC = 0;
-  public static final int PROCESS_TYPE_L1      = 1;
-  public static final int PROCESS_TYPE_L2      = 2;
-
-  public static void setLogDirectory(File theDirectory, int processType) {
+  public static void setLogDirectory(File theDirectory, String logName) {
     Assert.assertNotNull(theDirectory);
 
     if (theDirectory.getName().trim().equalsIgnoreCase("stdout:")
@@ -387,54 +378,52 @@ public class TCLogging {
     }
 
     FileLock thisDirectoryLock = null;
+    String lockFileName;
+    int counter = 0;
+    boolean isLockAcquired = false;
 
     if (!lockingDisabled) {
-      File lockFile = new File(theDirectory, LOCK_FILE_NAME);
+      while (!isLockAcquired && counter < LOG_COLLISION_LIMIT) {
+        if (counter == 0) {
+          lockFileName = "." + logName + ".lock";
+        } else {
+          lockFileName = "." + logName + ".collision-" + counter + ".lock";
+        }
+        File lockFile = new File(theDirectory, lockFileName);
+        try {
+          lockFile.createNewFile();
+          Assert.eval(lockFile.exists());
+          FileChannel channel = new RandomAccessFile(lockFile, "rw").getChannel();
+          thisDirectoryLock = channel.tryLock();
 
-      try {
-        lockFile.createNewFile();
-        Assert.eval(lockFile.exists());
-        FileChannel channel = new RandomAccessFile(lockFile, "rw").getChannel();
-        thisDirectoryLock = channel.tryLock();
-
-        if (thisDirectoryLock == null) {
-          reportLoggingError("The log directory, '" + theDirectory.getAbsolutePath()
-                             + "', is already in use by another "
-                             + "Terracotta process. Logging will proceed to the console only.", null);
+          if (thisDirectoryLock == null) {
+            // try different lock
+            counter++;
+            continue;
+          }
+        } catch (OverlappingFileLockException ofle) {
+          // try different lock file name
+          counter++;
+          continue;
+        } catch (IOException ioe) {
+          reportLoggingError("We can't lock the file '" + lockFile.getAbsolutePath() + "', to make sure that only one "
+                             + "Terracotta process is using this directory for logging. This may be a permission "
+                             + "issue, or some unexpected error. Logging will proceed to the console only.", ioe);
           return;
         }
-
-      } catch (OverlappingFileLockException ofle) {
-        // This VM already holds the lock; no problem
-      } catch (IOException ioe) {
-        reportLoggingError("We can't lock the file '" + lockFile.getAbsolutePath() + "', to make sure that only one "
-                           + "Terracotta process is using this directory for logging. This may be a permission "
-                           + "issue, or some unexpected error. Logging will proceed to the console only.", ioe);
+        isLockAcquired = true;
+      }
+      if (counter >= LOG_COLLISION_LIMIT) {
+        reportLoggingError("Too many log stream collisions (" + LOG_COLLISION_LIMIT
+            + "). Logging will proceed to the console only.", null);
         return;
       }
     }
 
     RollingFileAppender newFileAppender;
-
-    String logFileName;
-
-    switch (processType) {
-      case PROCESS_TYPE_L1:
-        logFileName = TERRACOTTA_L1_LOG_FILE_NAME;
-        break;
-
-      case PROCESS_TYPE_L2:
-        logFileName = TERRACOTTA_L2_LOG_FILE_NAME;
-        break;
-
-      case PROCESS_TYPE_GENERIC:
-        logFileName = TERRACOTTA_GENERIC_LOG_FILE_NAME;
-        break;
-
-      default:
-        throw Assert.failure("Unknown process type: " + processType);
-    }
-
+    
+    String logSuffixName = ((counter == 0) ? ".log" : ".collision-" + counter + ".log");
+    String logFileName = logName + logSuffixName;
     String logFilePath = new File(theDirectory, logFileName).getAbsolutePath();
     String fileNamePrefix = "";
     String fileNameSuffix = "";
@@ -548,14 +537,14 @@ public class TCLogging {
        * Don't add consoleLogger to allLoggers because it's a child of customerLogger, so it shouldn't get any appenders.
        * If you DO add consoleLogger here, you'll see duplicate messages in the log file.
        */
+      Logger jettyLogger = loggerContext.getLogger("org.eclipse.jetty");
+      internalLoggers.add(jettyLogger);
       allLoggers = createAllLoggerList(internalLoggers, customerLogger);
       if (!customLogging) {
-        Logger jettyLogger = loggerContext.getLogger("org.eclipse.jetty");
-        jettyLogger.setLevel(Level.OFF);
-
         for (Logger internalLogger : internalLoggers) {
           internalLogger.setLevel(Level.INFO);
         }
+        jettyLogger.setLevel(Level.WARN);
         customerLogger.setLevel(Level.INFO);
         consoleLogger.setLevel(Level.INFO);
         if (!isDev) {

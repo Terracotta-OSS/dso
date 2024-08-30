@@ -1,18 +1,18 @@
 /*
- * The contents of this file are subject to the Terracotta Public License Version
- * 2.0 (the "License"); You may not use this file except in compliance with the
- * License. You may obtain a copy of the License at
+ * Copyright Terracotta, Inc.
+ * Copyright Super iPaaS Integration LLC, an IBM Company 2024
  *
- *      http://terracotta.org/legal/terracotta-public-license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * The Covered Software is Terracotta Platform.
- *
- * The Initial Developer of the Covered Software is
- *      Terracotta, Inc., a Software AG company
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.tc.server;
 
@@ -25,11 +25,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.IOException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -45,7 +45,7 @@ import java.util.function.Consumer;
 public class TerracottaConnector extends LocalConnector {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TerracottaConnector.class);
-  static final int DEFAULT_IDLE_TIMEOUT_IN_MS = 30000;
+  static final int DEFAULT_IDLE_TIMEOUT_IN_MS = 10000;
   private final ExecutorService executorService;
   private final Consumer<Socket> reclaimer;
 
@@ -77,7 +77,7 @@ public class TerracottaConnector extends LocalConnector {
   }
 
   @Override
-  public Future<Void> shutdown() {
+  public CompletableFuture<Void> shutdown() {
     executorService.shutdownNow();
     return super.shutdown();
   }
@@ -131,7 +131,9 @@ public class TerracottaConnector extends LocalConnector {
           ByteBuffer byteBuffer = endPoint.waitForOutput(getIdleTimeout(), TimeUnit.MILLISECONDS);
           if (byteBuffer != null && byteBuffer.remaining() > 0) {
             try (WritableByteChannel channel = Channels.newChannel(socket.getOutputStream())) {
-              channel.write(byteBuffer);
+              while (byteBuffer.hasRemaining()) {
+                channel.write(byteBuffer);
+              }
             }
           }
         } catch (Exception e) {
@@ -140,7 +142,6 @@ public class TerracottaConnector extends LocalConnector {
           }
         } finally {
           MultiIOExceptionHandler m = new MultiIOExceptionHandler();
-          m.doSafely(() -> reader.cancel(true));
           m.doSafely(endPoint::close);
           m.doSafely(socket::close);
         }
@@ -148,7 +149,6 @@ public class TerracottaConnector extends LocalConnector {
     } catch (RuntimeException re) {
       // the thread pool is too busy, abandon this request
       MultiIOExceptionHandler m = new MultiIOExceptionHandler();
-      m.doSafely(() -> reader.cancel(true));
       m.doSafely(endPoint::close);
       m.doSafely(socket::close);
       m.addAsSuppressedTo(re);

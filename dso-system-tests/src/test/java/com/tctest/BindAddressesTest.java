@@ -1,22 +1,21 @@
-/* 
- * The contents of this file are subject to the Terracotta Public License Version
- * 2.0 (the "License"); You may not use this file except in compliance with the
- * License. You may obtain a copy of the License at 
+/*
+ * Copyright Terracotta, Inc.
+ * Copyright Super iPaaS Integration LLC, an IBM Company 2024
  *
- *      http://terracotta.org/legal/terracotta-public-license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * The Covered Software is Terracotta Platform.
- *
- * The Initial Developer of the Covered Software is 
- *      Terracotta, Inc., a Software AG company
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.tctest;
 
-import com.tc.exception.TCRuntimeException;
 import com.tc.object.BaseDSOTestCase;
 import com.tc.server.util.ServerStat;
 import com.tc.test.process.ExternalDsoServer;
@@ -25,9 +24,11 @@ import com.tc.util.concurrent.ThreadUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.Socket;
-import java.net.UnknownHostException;
+import java.net.SocketException;
 
 public class BindAddressesTest extends BaseDSOTestCase {
   private static final int          NUM_OF_SERVERS = 4;
@@ -45,11 +46,20 @@ public class BindAddressesTest extends BaseDSOTestCase {
 
   static String localAddr() {
     try {
-      String rv = InetAddress.getLocalHost().getHostAddress();
-      if (rv.startsWith("127.")) { throw new RuntimeException("Wrong local address " + rv); }
-      return rv;
-    } catch (UnknownHostException uhe) {
-      throw new TCRuntimeException("Host resolve error:" + uhe);
+      return NetworkInterface.networkInterfaces()
+        .filter(networkInterface -> {
+          try {
+            return networkInterface.isUp() && (networkInterface.getHardwareAddress() != null);
+          } catch (SocketException e) {
+            return false;
+          }
+        })
+        .flatMap(NetworkInterface::inetAddresses)
+        .filter(addr -> (addr instanceof Inet4Address) && !addr.isLoopbackAddress())
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("No non-loopback addresses for this host")).getHostAddress();
+    } catch (SocketException e) {
+      throw new AssertionError(e);
     }
   }
 

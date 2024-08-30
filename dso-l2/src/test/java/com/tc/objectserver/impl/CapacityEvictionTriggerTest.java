@@ -1,25 +1,23 @@
-/* 
- * The contents of this file are subject to the Terracotta Public License Version
- * 2.0 (the "License"); You may not use this file except in compliance with the
- * License. You may obtain a copy of the License at 
+/*
+ * Copyright Terracotta, Inc.
+ * Copyright Super iPaaS Integration LLC, an IBM Company 2024
  *
- *      http://terracotta.org/legal/terracotta-public-license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * The Covered Software is Terracotta Platform.
- *
- * The Initial Developer of the Covered Software is 
- *      Terracotta, Inc., a Software AG company
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.tc.objectserver.impl;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Matchers;
-import org.mockito.Mockito;
 
 import com.tc.object.ObjectID;
 import com.tc.objectserver.api.EvictableEntry;
@@ -32,13 +30,21 @@ import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import junit.framework.Assert;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 /**
  *
  * @author mscott
  */
 public class CapacityEvictionTriggerTest extends AbstractEvictionTriggerTest {
   
-  ServerMapEvictionManager mgr = Mockito.mock(ServerMapEvictionManager.class);
+  ServerMapEvictionManager mgr = mock(ServerMapEvictionManager.class);
     
     public CapacityEvictionTriggerTest() {
     }
@@ -51,12 +57,12 @@ public class CapacityEvictionTriggerTest extends AbstractEvictionTriggerTest {
     @Test
     public void testCapacityEvictionChaining() throws Exception {
         //  ten million elements in map
-        Mockito.when(getEvictableMap().getSize()).thenReturn(10000000);
+        when(getEvictableMap().getSize()).thenReturn(10000000);
         //  set max to 250k
-        Mockito.when(getEvictableMap().getMaxTotalCount()).thenReturn(250000);
+        when(getEvictableMap().getMaxTotalCount()).thenReturn(250000);
         checkCycle(250000);
-        Mockito.verify(this.getClientSet())
-          .addReferenceSetChangeListener(Matchers.<ClientObjectReferenceSetChangedListener> any());
+        verify(this.getClientSet())
+          .addReferenceSetChangeListener(any(ClientObjectReferenceSetChangedListener.class));
     }
 
         @Test
@@ -65,19 +71,19 @@ public class CapacityEvictionTriggerTest extends AbstractEvictionTriggerTest {
         final CapacityEvictionTrigger ct = (CapacityEvictionTrigger)getTrigger();
         final ClientObjectReferenceSet cs = getClientSet();
         //  ten million elements in map
-        Mockito.when(map.getSize()).thenReturn(10000000);
+        when(map.getSize()).thenReturn(10000000);
         //  set max to 250k
-        Mockito.when(map.getMaxTotalCount()).thenReturn(250000);
-        Mockito.when(map.getRandomSamples(Matchers.anyInt(), Matchers.<ClientObjectReferenceSet>any(), Matchers.<SamplingType>any()))
-                .thenReturn(Collections.<Object, EvictableEntry>emptyMap());
+        when(map.getMaxTotalCount()).thenReturn(250000);
+        when(map.getRandomSamples(anyInt(), any(ClientObjectReferenceSet.class), any(SamplingType.class)))
+          .thenReturn(Collections.<Object, EvictableEntry>emptyMap());
 
         boolean started = ct.startEviction(map);
         Assert.assertTrue(started);
-        Mockito.verify(map).startEviction();
+        verify(map).startEviction();
         ServerMapEvictionContext found = ct.collectEvictionCandidates(250000, "MOCK", map, cs);
         Assert.assertNull(found);
-        Mockito.verify(cs)
-          .addReferenceSetChangeListener(Matchers.<ClientObjectReferenceSetChangedListener> any());
+        verify(cs)
+          .addReferenceSetChangeListener(any(ClientObjectReferenceSetChangedListener.class));
 //  now pretend that client updated very fast 
         ct.notifyReferenceSetChanged();
 //  now pretend that client updated very fast 
@@ -85,10 +91,10 @@ public class CapacityEvictionTriggerTest extends AbstractEvictionTriggerTest {
 //  now pretend that client updated very fast 
         ct.notifyReferenceSetChanged();
 //  happens once
-        Mockito.verify(cs)
-          .removeReferenceSetChangeListener(Matchers.<ClientObjectReferenceSetChangedListener> any());
+        verify(cs)
+          .removeReferenceSetChangeListener(any(ClientObjectReferenceSetChangedListener.class));
 //  happens once
-        Mockito.verify(mgr).doEvictionOn(ct);
+        verify(mgr).doEvictionOn(ct);
 // simulate eviction start on new thread
         Thread es = new Thread() {
 
@@ -98,16 +104,16 @@ public class CapacityEvictionTriggerTest extends AbstractEvictionTriggerTest {
 // confirm repeating the same trigger            
             Assert.assertTrue(ct.isValid());
 // happened once before start was allowed to continue            
-            Mockito.verify(map,Mockito.times(2)).startEviction();
-            
-            Mockito.when(map.getRandomSamples(Matchers.anyInt(), Matchers.<ClientObjectReferenceSet>any(), Matchers.<SamplingType>any()))
-                .thenReturn(Collections.<Object, EvictableEntry>singletonMap("test",Mockito.mock(EvictableEntry.class)));
+            verify(map, times(2)).startEviction();
+
+            when(map.getRandomSamples(anyInt(), any(ClientObjectReferenceSet.class), any(SamplingType.class)))
+              .thenReturn(Collections.singletonMap("test", mock(EvictableEntry.class)));
             
             ct.collectEvictionCandidates(250000, "MOCK", map, cs);
             ct.completeEviction(map);
-            Mockito.verify(map, Mockito.times(2)).getRandomSamples(Matchers.anyInt(), Matchers.eq(cs), Matchers.eq(SamplingType.FOR_EVICTION));
+            verify(map, times(2)).getRandomSamples(anyInt(), eq(cs), eq(SamplingType.FOR_EVICTION));
 // only once
-            Mockito.verify(cs).addReferenceSetChangeListener(Matchers.<ClientObjectReferenceSetChangedListener> any());
+            verify(cs).addReferenceSetChangeListener(any(ClientObjectReferenceSetChangedListener.class));
           }
           
         };
@@ -116,7 +122,7 @@ public class CapacityEvictionTriggerTest extends AbstractEvictionTriggerTest {
         
         TimeUnit.SECONDS.sleep(3);
 // make sure getRandomSamples hasn't been called again
-        Mockito.verify(map).getRandomSamples(Matchers.anyInt(), Matchers.eq(cs), Matchers.eq(SamplingType.FOR_EVICTION));
+        verify(map).getRandomSamples(anyInt(), eq(cs), eq(SamplingType.FOR_EVICTION));
         
         ct.completeEviction(map);
         es.join();
@@ -124,7 +130,7 @@ public class CapacityEvictionTriggerTest extends AbstractEvictionTriggerTest {
         
     @Override @Before
     public void setUp() {
-        Mockito.when(getEvictableMap().getSize()).thenReturn(250);
+        when(getEvictableMap().getSize()).thenReturn(250);
         super.setUp();
     }
     

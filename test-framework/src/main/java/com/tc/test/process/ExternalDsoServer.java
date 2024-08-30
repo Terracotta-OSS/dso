@@ -1,22 +1,20 @@
-/* 
- * The contents of this file are subject to the Terracotta Public License Version
- * 2.0 (the "License"); You may not use this file except in compliance with the
- * License. You may obtain a copy of the License at 
+/*
+ * Copyright Terracotta, Inc.
+ * Copyright Super iPaaS Integration LLC, an IBM Company 2024
  *
- *      http://terracotta.org/legal/terracotta-public-license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * The Covered Software is Terracotta Platform.
- *
- * The Initial Developer of the Covered Software is 
- *      Terracotta, Inc., a Software AG company
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.tc.test.process;
-
-import org.apache.commons.io.IOUtils;
 
 import com.tc.config.Loader;
 import com.tc.config.schema.defaults.SchemaDefaultValueProvider;
@@ -31,6 +29,8 @@ import com.tc.util.ProductInfo;
 import com.terracottatech.config.Server;
 import com.terracottatech.config.TcConfigDocument;
 import com.terracottatech.config.TcConfigDocument.TcConfig;
+import junit.framework.Assert;
+import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,8 +40,6 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-
-import junit.framework.Assert;
 
 /**
  * This class will start a DSO server in Enterprise mode, out of process
@@ -256,10 +254,23 @@ public class ExternalDsoServer {
     return theConfigFile;
   }
 
+  // TODO: If we remove devmode, this method can be removed and just use ProductInfo directly
+
+  private static final String detectEdition() {
+    String edition = ProductInfo.OPENSOURCE;
+    try {
+      Class.forName("com.tc.util.ProductInfoEnterpriseBundle");
+      edition = ProductInfo.ENTERPRISE;
+    } catch (ClassNotFoundException e) {
+      // ignore
+    }
+    return edition;
+  }
+
   private String guessWarLocation() throws IOException {
     String groupId = "org.terracotta";
     String artifactId = "management-tsa-war";
-    if (ProductInfo.ENTERPRISE.equals(ProductInfo.getInstance().edition())) {
+    if (ProductInfo.ENTERPRISE.equals(detectEdition())) {
       groupId = "com.terracottatech";
       artifactId = "ent-management-tsa-war";
     }

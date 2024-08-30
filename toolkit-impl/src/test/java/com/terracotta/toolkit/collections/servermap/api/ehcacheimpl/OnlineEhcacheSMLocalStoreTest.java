@@ -1,18 +1,18 @@
-/* 
- * The contents of this file are subject to the Terracotta Public License Version
- * 2.0 (the "License"); You may not use this file except in compliance with the
- * License. You may obtain a copy of the License at 
+/*
+ * Copyright Terracotta, Inc.
+ * Copyright Super iPaaS Integration LLC, an IBM Company 2024
  *
- *      http://terracotta.org/legal/terracotta-public-license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * The Covered Software is Terracotta Platform.
- *
- * The Initial Developer of the Covered Software is 
- *      Terracotta, Inc., a Software AG company
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.terracotta.toolkit.collections.servermap.api.ehcacheimpl;
 
@@ -21,12 +21,13 @@ import net.sf.ehcache.config.CacheConfiguration;
 import net.sf.ehcache.terracotta.InternalEhcache;
 
 import org.junit.Test;
-import org.mockito.Matchers;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -47,7 +48,7 @@ public class OnlineEhcacheSMLocalStoreTest {
     Element old = new Element(key,value);
     
     InternalEhcache base = mock(InternalEhcache.class);
-    when(base.get(Matchers.any(Object.class))).thenReturn(old);
+    when(base.get(any(Object.class))).thenReturn(old);
     
     CacheConfiguration config = mock(CacheConfiguration.class);
     when(config.isOverflowToOffHeap()).thenReturn(false);
@@ -57,7 +58,7 @@ public class OnlineEhcacheSMLocalStoreTest {
     Object result = instance.get(key);
     assertEquals(old.getObjectValue(), result);
     
-    verify(base).get(Matchers.any(Object.class));
+    verify(base).get(any(Object.class));
   }
 
   /**
@@ -93,9 +94,9 @@ public class OnlineEhcacheSMLocalStoreTest {
     Element old = new Element("test","old");
     
     InternalEhcache base = mock(InternalEhcache.class);
-    when(base.removeAndReturnElement(Matchers.eq(key))).thenReturn(old);
-    when(base.putIfAbsent(Matchers.any(Element.class))).thenReturn(old);
-    when(base.replace(Matchers.eq(old), Matchers.any(Element.class))).thenReturn(true);
+    when(base.removeAndReturnElement(eq(key))).thenReturn(old);
+    when(base.putIfAbsent(any(Element.class))).thenReturn(old);
+    when(base.replace(eq(old), any(Element.class))).thenReturn(true);
     
     CacheConfiguration config = mock(CacheConfiguration.class);
     when(config.isOverflowToOffHeap()).thenReturn(false);
@@ -119,7 +120,7 @@ public class OnlineEhcacheSMLocalStoreTest {
     Element old = new Element(key,value);
     
     InternalEhcache base = mock(InternalEhcache.class);
-    when(base.removeAndReturnElement(Matchers.any())).thenReturn(old);
+    when(base.removeAndReturnElement(any())).thenReturn(old);
     
     CacheConfiguration config = mock(CacheConfiguration.class);
     when(config.isOverflowToOffHeap()).thenReturn(false);
@@ -129,7 +130,7 @@ public class OnlineEhcacheSMLocalStoreTest {
     Object result = instance.remove(key);
     assertEquals(old.getObjectValue(), result);
     
-    verify(base).removeAndReturnElement(Matchers.any());
+    verify(base).removeAndReturnElement(any());
   }
 
   /**
@@ -142,8 +143,8 @@ public class OnlineEhcacheSMLocalStoreTest {
     Element old = new Element(key,value);
     
     InternalEhcache base = mock(InternalEhcache.class);
-    when(base.get(Matchers.any(Object.class))).thenReturn(old);
-    when(base.removeElement(Matchers.eq(old))).thenReturn(true);
+    when(base.get(any(Object.class))).thenReturn(old);
+    when(base.removeElement(eq(old))).thenReturn(true);
     
     CacheConfiguration config = mock(CacheConfiguration.class);
     when(config.isOverflowToOffHeap()).thenReturn(false);
@@ -153,8 +154,8 @@ public class OnlineEhcacheSMLocalStoreTest {
     Object result = instance.remove(key, value);
     assertEquals(old.getObjectValue(), result);
     
-    verify(base).get(Matchers.any(Object.class));
-    verify(base).removeElement(Matchers.eq(old));
+    verify(base).get(any(Object.class));
+    verify(base).removeElement(eq(old));
   }
 
   /**
@@ -196,7 +197,7 @@ public class OnlineEhcacheSMLocalStoreTest {
     OnlineEhcacheSMLocalStore instance = new OnlineEhcacheSMLocalStore(base);
     instance.cleanLocalState();
     
-    verify(base).removeAll(Matchers.eq(true));
+    verify(base).removeAll(eq(true));
   }
   
 }

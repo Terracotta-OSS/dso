@@ -42,14 +42,14 @@ ${@#lee} fi
 ${@#loss} echo "Getting cluster thread dump of ${mgm_server_location} ..."
 ${@#lee} echo "Getting cluster thread dump of ${agentId} ..."
 if [[ "${doZip}" == "" ]]; then
-${@#loss}  ${rest_client} ${ignoreSslCert} -g "${mgm_server_location}/tc-management-api/v2/agents/diagnostics/${thread_dump}"  '$.[*].dump'
-${@#lee} ${rest_client} ${ignoreSslCert} -g "${mgm_server_location}/tmc/api/agents;ids=${agentId}/diagnostics/threadDump" "" "${username}" "${password}" '$.[*].dump'
+${@#loss}  ${rest_client} ${ignoreSslCert} -g "${mgm_server_location}/tc-management-api/v2/agents/diagnostics/${thread_dump}"  '$.entities[*].dump'
+${@#lee} ${rest_client} ${ignoreSslCert} -g "${mgm_server_location}/tmc/api/v2/agents;ids=${agentId}/diagnostics/threadDump" "" "${username}" "${password}" '$.entities[*].dump'
 else
-${@#lee} if ! ${rest_client} ${ignoreSslCert} -e -f -g "${mgm_server_location}/tmc/api/agents" "" "${username}" "${password}" '$.[?(@.agencyOf == 'TSA')].[?(@.agentId == '${agentId}')].agentId' &> /dev/null ; then
+${@#lee} if ! ${rest_client} ${ignoreSslCert} -e -f -g "${mgm_server_location}/tmc/api/v2/agents" "" "${username}" "${password}" '$.entities[?(@.agencyOf == 'TSA')].[?(@.agentId == '${agentId}')].agentId' &> /dev/null ; then
 ${@#lee}    echo "Invalid agent ID, available IDs:"
 ${@#lee}    exec `dirname $0`/list-agent-ids.sh ${ignoreSslCert} -u "${username}" -p "${password}" -l "${mgm_server_location}"
 ${@#lee}  fi
-${@#lee}  ${rest_client} ${ignoreSslCert} -g "${mgm_server_location}/tmc/api/agents;ids=${agentId}/diagnostics/threadDumpArchive" "" "${username}" "${password}" > ${agentId}-ThreadDump.zip  
+${@#lee}  ${rest_client} ${ignoreSslCert} -g "${mgm_server_location}/tmc/api/v2/agents;ids=${agentId}/diagnostics/threadDumpArchive" "" "${username}" "${password}" > ${agentId}-ThreadDump.zip
 ${@#loss}  ${rest_client} ${ignoreSslCert} -g "${mgm_server_location}/tc-management-api/v2/agents/diagnostics/${thread_dump_archive}"  > ThreadDump.zip
 fi
 exit $?
