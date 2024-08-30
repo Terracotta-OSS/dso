@@ -73,8 +73,4 @@ public class TerracottaConfigBuilder extends BaseConfigBuilder {
     return out;
   }
 
-  public static void main(String[] args) {
-    System.err.println(newMinimalInstance());
-  }
-
 }

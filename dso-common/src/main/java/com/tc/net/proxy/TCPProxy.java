@@ -19,12 +19,10 @@ package com.tc.net.proxy;
 import com.tc.util.StringUtil;
 import com.tc.util.concurrent.ThreadUtil;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -258,10 +256,6 @@ public class TCPProxy {
     }
   }
 
-  public void toggleDebug() {
-    debug = !debug;
-  }
-
   public synchronized long getDelay() {
     return delay;
   }
@@ -357,108 +351,6 @@ public class TCPProxy {
 
       if (conns.length == 0) {
         System.err.println("\tNONE");
-      }
-    }
-  }
-
-  private static void help() {
-    synchronized (System.err) {
-      System.err.println();
-      System.err.println("h       - this help message");
-      System.err.println("s       - print proxy status");
-      System.err.println("d <num> - adjust the delay time to <num> milliseconds");
-      System.err.println("c       - close all active connections");
-      System.err.println("l       - toggle debug logging");
-      System.err.println("q       - quit (shutdown proxy)");
-    }
-  }
-
-  public static void main(String[] args) throws IOException, InterruptedException {
-    if ((args.length < 2) || (args.length > 3)) {
-      usage();
-      System.exit(1);
-    }
-
-    final int listenPort = Integer.valueOf(args[0]).intValue();
-    final String[] endpointStrings = args[1].split(",");
-    final InetSocketAddress[] endpoints = new InetSocketAddress[endpointStrings.length];
-    for (int pos = 0; pos < endpointStrings.length; ++pos) {
-      final int separatorIdx = endpointStrings[pos].indexOf(":");
-      endpoints[pos] = new InetSocketAddress(endpointStrings[pos].substring(0, separatorIdx), Integer
-          .parseInt(endpointStrings[pos].substring(separatorIdx + 1)));
-    }
-
-    long delay = 0;
-    if (args.length == 3) {
-      delay = (Long.valueOf(args[2]).longValue());
-    }
-
-    // If this is set to true then we are in non-interactive mode and don't print a prompt
-    final boolean daemonMode = Boolean.getBoolean("daemon");
-
-    final TCPProxy theProxy = new TCPProxy(listenPort, endpoints, delay, false, null);
-    theProxy.start();
-
-    if (daemonMode) {
-      //block this thread - we don't want to terminate
-      Thread.currentThread().join();
-    } else {
-      try {
-        BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
-        String line = "";
-        prompt();
-        while ((line = stdin.readLine()) != null) {
-          line = line.trim();
-
-          if (line.toLowerCase().startsWith("q")) {
-            break;
-          }
-
-          try {
-            if (line.toLowerCase().startsWith("h")) {
-              help();
-              continue;
-            }
-
-            if (line.toLowerCase().startsWith("s")) {
-              theProxy.status();
-              continue;
-            }
-
-            if (line.toLowerCase().startsWith("c")) {
-              theProxy.closeAllConnections(true);
-              out("all connections closed");
-              continue;
-            }
-
-            if (line.toLowerCase().startsWith("l")) {
-              theProxy.toggleDebug();
-              out("debug logging toggled");
-              continue;
-            }
-
-            if (line.toLowerCase().startsWith("d")) {
-              if (line.length() <= 2) {
-                out("you must supply a delay value");
-                continue;
-              }
-
-              try {
-                theProxy.setDelay(Long.valueOf(line.substring(2)).longValue());
-                theProxy.interrupt();
-              } catch (Exception e) {
-                out(e);
-              }
-              continue;
-            }
-          } catch (Exception e) {
-            out(e);
-          } finally {
-            prompt();
-          }
-        }
-      } finally {
-        theProxy.stop();
       }
     }
   }
@@ -717,26 +609,6 @@ public class TCPProxy {
     }
   }
 
-  private static void prompt() {
-    synchronized (System.err) {
-      System.err.print("\nproxy> ");
-      System.err.flush();
-    }
-  }
-
-  private static void out(String message) {
-    synchronized (System.err) {
-      System.err.println(message);
-    }
-  }
-
-  private static void out(Throwable t) {
-    if (t == null) return;
-    synchronized (System.err) {
-      t.printStackTrace(System.err);
-    }
-  }
-
   private static void log(String message) {
     log(message, null);
   }
@@ -756,14 +628,6 @@ public class TCPProxy {
 
   private void debug(String message, Throwable t) {
     if (debug) log(message, t);
-  }
-
-  private static void usage() {
-    System.err.println("usage: TCPProxy <listen port> <endpoint[,endpoint...]> [delay]");
-    System.err.println("    <listen port> - The port the proxy should listen on");
-    System.err
-        .println("       <endpoint> - Comma separated list of 1 or more <host>:<port> pairs to round robin requests to");
-    System.err.println("          [delay] - Millisecond delay between network data (optional, default: 0)");
   }
 
 }

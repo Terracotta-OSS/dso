@@ -144,15 +144,6 @@ public class NIOWorkarounds {
   }
 
   /**
-   * Apply Solaris 10 workaround if applicable.
-   * 
-   * @param args Ignored
-   */
-  public static void main(String args[]) {
-    NIOWorkarounds.solaris10Workaround();
-  }
-
-  /**
    * Determine whether to retry during connect
    * 
    * @param cse Exception to examine

@@ -32,11 +32,4 @@ public class ClusterIDMissmatchException extends RuntimeException {
 
   }
 
-  public static void main(String arg[]) {
-    try {
-      throw new ClusterIDMissmatchException("f96ce271e0db44e19f5e1bd834706c08", "fe2b3d2126ed4d5e87d1f9f058d1699a");
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
 }
