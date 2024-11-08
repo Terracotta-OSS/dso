@@ -194,6 +194,8 @@ public class TCStop {
           return;
         } else if (response.getStatus() == 401) {
           throw new IOException("Authentication error while connecting to " + hostPort + ", check username/password and try again.");
+        } else if (response.getStatus() == 403) {
+          throw new IOException("Insufficient permissions to perform a server shutdown.");
         } else if (response.getStatus() == 404) {
           consoleLogger.warn("Got a 404 while connecting to " + hostPort + ". Management service might not be started " +
             "yet; retrying.");

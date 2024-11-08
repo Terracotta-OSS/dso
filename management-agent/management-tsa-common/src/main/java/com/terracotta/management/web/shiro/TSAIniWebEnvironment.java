@@ -17,15 +17,17 @@
 package com.terracotta.management.web.shiro;
 
 import org.apache.shiro.web.env.IniWebEnvironment;
-
-import com.terracotta.management.web.utils.TSAConfig;
+import org.terracotta.management.security.web.shiro.TCWebIniSecurityManagerFactory;
 
 /**
  * @author Ludovic Orban
  */
 public class TSAIniWebEnvironment extends IniWebEnvironment {
+  protected final static String UNSECURE_INI_RESOURCE_PATH = "classpath:shiro.ini";
 
-  private final static String UNSECURE_INI_RESOURCE_PATH = "classpath:shiro.ini";
+  public TSAIniWebEnvironment() {
+    setSecurityManagerFactory(new TCWebIniSecurityManagerFactory());
+  }
 
   @Override
   protected String[] getDefaultConfigLocations() {

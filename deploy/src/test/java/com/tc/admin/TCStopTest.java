@@ -78,7 +78,7 @@ public class TCStopTest {
   public void testUnknownError() throws Exception {
     WebTarget target = mockWebTarget("localhost", 12323);
     responseCode(target, 403);
-    String errorMessage = "critical failure";
+    String errorMessage = "Insufficient permissions to perform a server shutdown.";
     when(target.request(MediaType.APPLICATION_JSON_TYPE)
         .post(Entity.json(null))
         .readEntity(any(Class.class))).thenReturn(
