@@ -1,41 +1,19 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
-   Copyright Terracotta, Inc.
-   Copyright IBM Corp. 2024, 2025
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
--->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
+<project xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-
   <parent>
     <groupId>org.terracotta</groupId>
     <artifactId>terracotta-root</artifactId>
-    <version>4.5.0-SNAPSHOT</version>
+    <version>4.5.0.0.75</version>
   </parent>
-
   <artifactId>build-parent</artifactId>
   <name>build-parent</name>
   <packaging>pom</packaging>
-
   <licenses>
     <license>
       <name>The Apache License, Version 2.0</name>
       <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
     </license>
   </licenses>
-
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -43,20 +21,18 @@
     <heap-core-storage.version>1.2.2</heap-core-storage.version>
     <bigmemory-core-storage.version>2.1.4</bigmemory-core-storage.version>
     <search.version>1.5.20</search.version>
-    <management-core.version>4.5.0-SNAPSHOT</management-core.version>
+    <management-core.version>4.5.0.0.75</management-core.version>
     <tc-messaging.version>1.1.16</tc-messaging.version>
     <terracotta-license.version>0.9.2</terracotta-license.version>
     <toolkit-api.version>2.11</toolkit-api.version>
     <toolkit-api-internal.version>1.20</toolkit-api-internal.version>
-    <!-- version of ehcache embedded inside toolkit -->
-    <ehcache.version>2.12.0-SNAPSHOT</ehcache.version>
+    <ehcache.version>2.12.0.0.75</ehcache.version>
     <tcconfig.version>9.7</tcconfig.version>
     <linked-child-process.version>2.0.3</linked-child-process.version>
     <skip.testjar>false</skip.testjar>
     <listName>checkshort.txt</listName>
     <localMavenRepository>${user.home}/.m2/repository</localMavenRepository>
     <checkstyle-suppressions-file>${basedir}/../checkstyle/suppressions.xml</checkstyle-suppressions-file>
-
     <tc.tests.configuration.properties.file>${project.build.testOutputDirectory}/tc.tests.properties</tc.tests.configuration.properties.file>
     <tc.system.tests.properties>${project.build.testOutputDirectory}/com/tc/properties/tests.properties</tc.system.tests.properties>
     <tc.config>-Dtc.config=tc-config.xml</tc.config>
@@ -90,7 +66,6 @@
       -Djdk.attach.allowAttachSelf
     </surefire.argLine>
   </properties>
-
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -132,7 +107,7 @@
         <groupId>org.terracotta</groupId>
         <artifactId>management-core</artifactId>
         <version>${management-core.version}</version>
-      </dependency>      
+      </dependency>
       <dependency>
         <groupId>org.terracotta</groupId>
         <artifactId>management-core-resources</artifactId>
@@ -143,8 +118,6 @@
         <artifactId>terracotta-license</artifactId>
         <version>${terracotta-license.version}</version>
       </dependency>
-
-      <!-- Dependencies for core Terracotta artifacts -->
       <dependency>
         <groupId>org.terracotta</groupId>
         <artifactId>tcconfig</artifactId>
@@ -162,7 +135,6 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
-
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -191,9 +163,8 @@
       <artifactId>test-listeners</artifactId>
       <version>1.0.3</version>
       <scope>test</scope>
-    </dependency>         
+    </dependency>
   </dependencies>
-
   <build>
     <resources>
       <resource>
@@ -205,7 +176,6 @@
         <filtering>true</filtering>
       </resource>
     </resources>
-
     <pluginManagement>
       <plugins>
         <plugin>
@@ -220,9 +190,9 @@
                 <goal>execute</goal>
               </goals>
               <configuration>
-                <source><![CDATA[
+                <source>
                   Properties outputProperties = new Properties()
-                  properties.each { key, value ->
+                  properties.each { key, value -&gt;
                     if (key =~ /^tc\.tests\./) {
                       outputProperties.setProperty(key, value)
                     }
@@ -239,21 +209,16 @@
                   finally {
                     outputStream.close()
                   }
-                  ]]></source>
+                  </source>
               </configuration>
             </execution>
           </executions>
         </plugin>
-
         <plugin>
           <groupId>org.terracotta</groupId>
           <artifactId>maven-forge-plugin</artifactId>
           <version>${maven-forge-plugin.version}</version>
           <executions>
-            <!--
-            We do not bind phase/goals here so that behavior can be controlled by
-            definitions in forge-parent (-Psystem-tests will turn this off)
-            -->
             <execution>
               <id>default-test</id>
               <configuration>
@@ -262,7 +227,7 @@
                     <name>listener</name>
                     <value>net.sf.ehcache.SystemExitListener</value>
                   </property>
-                </properties>              
+                </properties>
                 <failIfNoTests>false</failIfNoTests>
                 <printSummary>true</printSummary>
                 <reportFormat>plain</reportFormat>
@@ -281,7 +246,7 @@
               </configuration>
             </execution>
           </executions>
-        </plugin>        
+        </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
@@ -323,7 +288,6 @@
         </plugin>
       </plugins>
     </pluginManagement>
-
     <plugins>
       <plugin>
         <groupId>org.codehaus.gmaven</groupId>
@@ -335,7 +299,6 @@
       </plugin>
     </plugins>
   </build>
-
   <profiles>
     <profile>
       <id>client-jvm</id>
@@ -349,7 +312,6 @@
         <surefire.jvm.mode>-server</surefire.jvm.mode>
       </properties>
     </profile>
-
     <profile>
       <id>workaround-windows</id>
       <activation>
@@ -361,7 +323,6 @@
         <localMavenRepository>C:\DOCUME~1\${user.name}\.m2\repository</localMavenRepository>
       </properties>
     </profile>
-
     <profile>
       <id>check-short</id>
       <build>
@@ -379,9 +340,8 @@
               <failIfNoTests>false</failIfNoTests>
             </configuration>
           </plugin>
-        </plugins>      
+        </plugins>
       </build>
-    </profile>   
+    </profile>
   </profiles>
-
 </project>

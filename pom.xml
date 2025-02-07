@@ -1,52 +1,27 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
-
- Copyright Terracotta, Inc.
- Copyright IBM Corp. 2024, 2025
-
- Licensed under the Apache License, Version 2.0 (the "License");
- you may not use this file except in compliance with the License.
- You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
--->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
+<project xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-
   <parent>
     <groupId>org.terracotta.forge</groupId>
     <artifactId>forge-parent</artifactId>
     <version>8.1</version>
     <relativePath/>
   </parent>
-
   <groupId>org.terracotta</groupId>
   <artifactId>terracotta-root</artifactId>
-  <version>4.5.0-SNAPSHOT</version>
+  <version>4.5.0.0.75</version>
   <name>terracotta-root</name>
   <packaging>pom</packaging>
-
   <scm>
     <developerConnection>scm:git:https://github.com/Terracotta-OSS/dso.git</developerConnection>
   </scm>
-  
   <properties>
     <build.edition>opensource</build.edition>
     <tc-shader.version>2.1.1</tc-shader.version>
     <skip.deploy>false</skip.deploy>
-    <!-- can't default to ${project.version}, breaks child projects like ehcache that use a different version -->
-    <thirdparty-bom.version>4.5.0-SNAPSHOT</thirdparty-bom.version>
+    <thirdparty-bom.version>4.5.0.0.75</thirdparty-bom.version>
     <groovy.version>4.0.24</groovy.version>
     <groovy-maven-plugin.version>2.1.1</groovy-maven-plugin.version>
   </properties>
-
   <modules>
     <module>build-parent</module>
     <module>build-data</module>
@@ -57,28 +32,23 @@
     <module>dso-l1</module>
     <module>dso-l2</module>
     <module>deploy</module>
-
     <module>legacy-test-tree</module>
     <module>dso-system-tests</module>
-
     <module>terracotta-parent</module>
     <module>terracotta</module>
     <module>terracotta-l1-parent</module>
     <module>terracotta-l1</module>
     <module>test-framework</module>
     <module>system-tests-parent</module>
-
     <module>toolkit-impl</module>
     <module>toolkit-express-impl</module>
     <module>toolkit-runtime</module>
-
     <module>management</module>
     <module>management-agent</module>
     <module>terracotta-samples</module>
     <module>server-script</module>
     <module>management-cli-oss</module>
   </modules>
-
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -90,7 +60,6 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
-
   <build>
     <pluginManagement>
       <plugins>
@@ -106,9 +75,9 @@
               </goals>
               <configuration>
                 <scripts>
-                  <script><![CDATA[
+                  <script>
                         new org.reflections.Reflections(["com", "org", "net"]).save(new File(project.build.directory, "reflections.xml").absolutePath)
-                    ]]></script>
+                    </script>
                 </scripts>
               </configuration>
             </execution>
@@ -216,7 +185,7 @@
           <licenseSets>
             <licenseSet>
               <inlineHeader>
-                <![CDATA[
+                
 Copyright Terracotta, Inc.
 Copyright IBM Corp. 2024, 2025
 
@@ -231,7 +200,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-]]></inlineHeader>
+</inlineHeader>
               <excludes>
                 <exclude>**/target/**</exclude>
                 <exclude>azure-pipelines.yml</exclude>
@@ -260,9 +229,7 @@ limitations under the License.
       </plugin>
     </plugins>
   </build>
-
   <profiles>
-    <!-- Allow building kit from the top level -->
     <profile>
       <id>kit</id>
       <modules>
@@ -275,16 +242,12 @@ limitations under the License.
         <module>terracotta-kit</module>
       </modules>
     </profile>
-  
-    <!-- Allow building cloud stuff from top level (and automatic versions:set support for those poms) -->
     <profile>
       <id>cloud</id>
       <modules>
         <module>../cloud</module>
       </modules>
     </profile>
-
-    <!-- activate to include EE modules if it's EE branch -->
     <profile>
       <id>include-ee-modules</id>
       <properties>
@@ -314,7 +277,6 @@ limitations under the License.
         <module>../toolkit-lrt-system-tests</module>
       </modules>
     </profile>
-
     <profile>
       <id>terracotta-checkstyle</id>
       <activation>
@@ -326,9 +288,6 @@ limitations under the License.
         <module>devwork/terracotta-checkstyle</module>
       </modules>
     </profile>
-
-    <!-- activate by default if 'terracotta-toolkit-api' module exists.
-         You have to check out this module manually under 'community/devwork' -->
     <profile>
       <id>toolkit-api</id>
       <activation>
@@ -340,7 +299,6 @@ limitations under the License.
         <module>devwork/terracotta-toolkit-api</module>
       </modules>
     </profile>
-
     <profile>
       <id>toolkit-api-internal</id>
       <activation>
@@ -352,7 +310,6 @@ limitations under the License.
         <module>devwork/terracotta-toolkit-api-internal</module>
       </modules>
     </profile>
-
     <profile>
       <id>ehcache-parent</id>
       <activation>
@@ -364,10 +321,6 @@ limitations under the License.
         <module>devwork/ehcache-parent</module>
       </modules>
     </profile>
-    <!-- activate by default if 'ehcache' module exists.
-         You have to check out this module manually under 'community/devwork'.
-         The 'ehcache-ee' module includes 'ehcache' (as 'ehcache-os') so this profile
-         is unneeded if 'ehcache-ee' is present. -->
     <profile>
       <id>ehcache</id>
       <activation>
@@ -379,9 +332,6 @@ limitations under the License.
         <module>devwork/ehcache</module>
       </modules>
     </profile>
-    <!-- activate by default if 'ehcache-ee' module exists.
-         You have to check out this module manually under 'community/devwork'.
-         This module includes the 'ehcache' module (as 'ehcache-os'). -->
     <profile>
       <id>ehcache-ee</id>
       <activation>
@@ -393,7 +343,6 @@ limitations under the License.
         <module>devwork/ehcache-ee</module>
       </modules>
     </profile>
-
     <profile>
       <id>quartz</id>
       <activation>
@@ -405,7 +354,6 @@ limitations under the License.
         <module>devwork/quartz</module>
       </modules>
     </profile>
-
     <profile>
       <id>quartz-ee</id>
       <activation>
@@ -417,7 +365,6 @@ limitations under the License.
         <module>devwork/quartz-ee</module>
       </modules>
     </profile>
-
     <profile>
       <id>management-core</id>
       <activation>
@@ -429,7 +376,6 @@ limitations under the License.
         <module>devwork/management-core</module>
       </modules>
     </profile>
-
     <profile>
       <id>management-common</id>
       <activation>
@@ -441,7 +387,6 @@ limitations under the License.
         <module>devwork/management-common</module>
       </modules>
     </profile>
-
     <profile>
       <id>management-apps</id>
       <activation>
@@ -453,7 +398,6 @@ limitations under the License.
         <module>devwork/management-apps</module>
       </modules>
     </profile>
-
     <profile>
       <id>tc-messaging</id>
       <activation>
@@ -465,7 +409,6 @@ limitations under the License.
         <module>devwork/tc-messaging</module>
       </modules>
     </profile>
-
     <profile>
       <id>ipc-eventbus</id>
       <activation>
@@ -477,7 +420,6 @@ limitations under the License.
         <module>devwork/ipc-eventbus</module>
       </modules>
     </profile>
-
     <profile>
       <id>core-storage-api</id>
       <activation>
@@ -489,7 +431,6 @@ limitations under the License.
         <module>devwork/core-storage-api</module>
       </modules>
     </profile>
-
     <profile>
       <id>heap-core-storage</id>
       <activation>
@@ -501,7 +442,6 @@ limitations under the License.
         <module>devwork/heap-core-storage</module>
       </modules>
     </profile>
-
     <profile>
       <id>bigmemory-core-storage</id>
       <activation>
@@ -513,7 +453,6 @@ limitations under the License.
         <module>devwork/bigmemory-core-storage</module>
       </modules>
     </profile>
-
     <profile>
       <id>offheap-restartable-store</id>
       <activation>
@@ -525,7 +464,6 @@ limitations under the License.
         <module>devwork/offheap-restartable-store</module>
       </modules>
     </profile>
-
     <profile>
       <id>bigmemory-restartable-core-storage</id>
       <activation>
@@ -537,7 +475,6 @@ limitations under the License.
         <module>devwork/bigmemory-restartable-core-storage</module>
       </modules>
     </profile>
-
     <profile>
       <id>search</id>
       <activation>
@@ -549,7 +486,6 @@ limitations under the License.
         <module>devwork/search</module>
       </modules>
     </profile>
-
     <profile>
       <id>terracotta-license</id>
       <activation>
@@ -561,7 +497,6 @@ limitations under the License.
         <module>devwork/terracotta-license</module>
       </modules>
     </profile>
-
     <profile>
       <id>offheap-store</id>
       <activation>
@@ -573,7 +508,6 @@ limitations under the License.
         <module>devwork/offheap-store</module>
       </modules>
     </profile>
-
     <profile>
       <id>statistics</id>
       <activation>
@@ -585,7 +519,6 @@ limitations under the License.
         <module>devwork/statistics</module>
       </modules>
     </profile>
-
     <profile>
       <id>security-modules</id>
       <activation>
@@ -597,7 +530,6 @@ limitations under the License.
         <module>devwork/security-modules</module>
       </modules>
     </profile>
-
     <profile>
       <id>container-test-framework</id>
       <activation>
@@ -609,7 +541,6 @@ limitations under the License.
         <module>devwork/container-test-framework</module>
       </modules>
     </profile>
-
     <profile>
       <id>wan40</id>
       <activation>
@@ -621,7 +552,6 @@ limitations under the License.
         <module>devwork/wan40</module>
       </modules>
     </profile>
-
     <profile>
       <id>terracotta-sessions</id>
       <activation>
@@ -633,7 +563,6 @@ limitations under the License.
         <module>devwork/terracotta-sessions</module>
       </modules>
     </profile>
-
     <profile>
       <id>osgi-test-tool</id>
       <activation>
@@ -645,7 +574,6 @@ limitations under the License.
         <module>devwork/osgi-test-tool</module>
       </modules>
     </profile>
-
     <profile>
       <id>fast-restartable-store</id>
       <activation>
@@ -657,7 +585,6 @@ limitations under the License.
         <module>devwork/fast-restartable-store</module>
       </modules>
     </profile>
-
     <profile>
       <id>product-upgradability-testing-utils</id>
       <activation>
@@ -669,7 +596,6 @@ limitations under the License.
         <module>devwork/product-upgradability-testing-utils</module>
       </modules>
     </profile>
-
     <profile>
       <id>jmxremote_optional_tc</id>
       <activation>
@@ -681,7 +607,6 @@ limitations under the License.
         <module>devwork/jmxremote_optional_tc</module>
       </modules>
     </profile>
-
     <profile>
       <id>linked-child-process</id>
       <activation>
@@ -693,7 +618,6 @@ limitations under the License.
         <module>devwork/linked-child-process</module>
       </modules>
     </profile>
-
     <profile>
       <id>test-listeners</id>
       <activation>
@@ -705,7 +629,6 @@ limitations under the License.
         <module>devwork/test-listeners</module>
       </modules>
     </profile>
-
     <profile>
       <id>clustered-entity-management</id>
       <activation>
@@ -717,7 +640,6 @@ limitations under the License.
         <module>devwork/clustered-entity-management</module>
       </modules>
     </profile>
-
     <profile>
       <id>tc-config-schema</id>
       <activation>
@@ -729,7 +651,6 @@ limitations under the License.
         <module>devwork/tc-config-schema</module>
       </modules>
     </profile>
-
     <profile>
       <id>x-platform</id>
       <activation>
@@ -741,7 +662,6 @@ limitations under the License.
         <module>devwork/x-platform</module>
       </modules>
     </profile>
-
     <profile>
       <id>bigmemory-max-code-samples</id>
       <activation>
@@ -753,7 +673,6 @@ limitations under the License.
         <module>devwork/bigmemory-max/code-samples</module>
       </modules>
     </profile>
-
     <profile>
       <id>bigmemory-max-code-samples-test</id>
       <activation>
@@ -765,9 +684,7 @@ limitations under the License.
         <module>devwork/bigmemory-max/code-samples-test</module>
       </modules>
     </profile>
-
   </profiles>
-
   <distributionManagement>
     <repository>
       <id>terracotta-nexus-staging</id>
@@ -775,7 +692,6 @@ limitations under the License.
       <url>${terracotta-nexus-staging-url}</url>
     </repository>
   </distributionManagement>
-
   <repositories>
     <repository>
       <id>sonatype-snapshots</id>
@@ -787,7 +703,6 @@ limitations under the License.
         <enabled>false</enabled>
       </releases>
     </repository>
-    <!-- this we need to find parent -->
     <repository>
       <id>terracotta-releases</id>
       <url>https://repo.terracotta.org/maven2</url>
